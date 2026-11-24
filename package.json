@@ -1,0 +1,12 @@
+{
+  "name": "behavioral-finance-fullstack",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -n API,WEB -c blue,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "test": "npm --prefix server test",
+    "build": "npm --prefix client run build"
+  },
+  "devDependencies": { "concurrently": "^8.2.2" }
+}

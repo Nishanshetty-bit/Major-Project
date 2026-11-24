@@ -1,0 +1,65 @@
+{
+  "createdAt": "2026-11-24T11:56:52.137349+00:00",
+  "datasets": {
+    "financialPhraseBank": {
+      "configuration": "sentences_allagree",
+      "availableSplits": [
+        "train"
+      ],
+      "separateTestSplitAvailable": false,
+      "rows": 2264,
+      "uniqueTexts": 2259,
+      "duplicateRows": 5,
+      "classDistribution": {
+        "negative": 303,
+        "neutral": 1391,
+        "positive": 570
+      }
+    },
+    "fiqa": {
+      "configuration": "pauri32/fiqa-2018",
+      "availableSplits": [
+        "train",
+        "validation",
+        "test"
+      ],
+      "splits": {
+        "train": {
+          "rows": 961,
+          "uniqueTexts": 961,
+          "duplicateRows": 0,
+          "classDistribution": {
+            "positive": 632,
+            "neutral": 34,
+            "negative": 295
+          }
+        },
+        "validation": {
+          "rows": 102,
+          "uniqueTexts": 87,
+          "duplicateRows": 15,
+          "classDistribution": {
+            "positive": 34,
+            "neutral": 34,
+            "negative": 34
+          }
+        },
+        "test": {
+          "rows": 150,
+          "uniqueTexts": 150,
+          "duplicateRows": 0,
+          "classDistribution": {
+            "positive": 50,
+            "neutral": 50,
+            "negative": 50
+          }
+        }
+      },
+      "exactTextOverlapBySplitPair": {
+        "train__validation": 87,
+        "train__test": 0,
+        "validation__test": 0
+      }
+    }
+  }
+}

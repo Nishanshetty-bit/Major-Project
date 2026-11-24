@@ -1,0 +1,157 @@
+{
+  "model": "ProsusAI/finbert",
+  "createdAt": "2026-11-24T11:02:56.759210+00:00",
+  "artifact": "C:\\Users\\Nishan Shetty\\OneDrive\\Desktop\\behavioral-finance-fullstack-v2 (1)\\ml\\models\\finbert",
+  "device": "cpu",
+  "evaluationScope": "Full available Financial PhraseBank sentences_allagree extract and the held-out FIQA test split; no artificial balancing or test-time training.",
+  "labelMappings": {
+    "financialPhraseBank": {
+      "0": "negative",
+      "1": "neutral",
+      "2": "positive"
+    },
+    "fiqa": {
+      "0": "positive",
+      "1": "neutral",
+      "2": "negative"
+    }
+  },
+  "evaluations": {
+    "financialPhraseBank": {
+      "rows": 2259,
+      "classDistribution": {
+        "0": 303,
+        "1": 1386,
+        "2": 570
+      },
+      "accuracy": 0.9716688800354139,
+      "macro_f1": 0.9624820403323632,
+      "weighted_f1": 0.9719767058286134,
+      "precisionMacro": 0.9505212248622484,
+      "recallMacro": 0.9758340997006969,
+      "classification_report": {
+        "0": {
+          "precision": 0.9057750759878419,
+          "recall": 0.9834983498349835,
+          "f1-score": 0.9430379746835443,
+          "support": 303.0
+        },
+        "1": {
+          "precision": 0.9985096870342772,
+          "recall": 0.9668109668109668,
+          "f1-score": 0.9824046920821115,
+          "support": 1386.0
+        },
+        "2": {
+          "precision": 0.9472789115646258,
+          "recall": 0.9771929824561404,
+          "f1-score": 0.9620034542314335,
+          "support": 570.0
+        },
+        "accuracy": 0.9716688800354139,
+        "macro avg": {
+          "precision": 0.9505212248622484,
+          "recall": 0.9758340997006969,
+          "f1-score": 0.9624820403323632,
+          "support": 2259.0
+        },
+        "weighted avg": {
+          "precision": 0.9731444240131302,
+          "recall": 0.9716688800354139,
+          "f1-score": 0.9719767058286134,
+          "support": 2259.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          298,
+          1,
+          4
+        ],
+        [
+          19,
+          1340,
+          27
+        ],
+        [
+          12,
+          1,
+          557
+        ]
+      ],
+      "nativeLabels": {
+        "0": "positive",
+        "1": "negative",
+        "2": "neutral"
+      }
+    },
+    "fiqa": {
+      "rows": 150,
+      "classDistribution": {
+        "0": 50,
+        "1": 50,
+        "2": 50
+      },
+      "accuracy": 0.5666666666666667,
+      "macro_f1": 0.56189337968999,
+      "weighted_f1": 0.5618933796899899,
+      "precisionMacro": 0.594200643220251,
+      "recallMacro": 0.5666666666666665,
+      "classification_report": {
+        "0": {
+          "precision": 0.6481481481481481,
+          "recall": 0.7,
+          "f1-score": 0.6730769230769231,
+          "support": 50.0
+        },
+        "1": {
+          "precision": 0.45588235294117646,
+          "recall": 0.62,
+          "f1-score": 0.5254237288135594,
+          "support": 50.0
+        },
+        "2": {
+          "precision": 0.6785714285714286,
+          "recall": 0.38,
+          "f1-score": 0.48717948717948717,
+          "support": 50.0
+        },
+        "accuracy": 0.5666666666666667,
+        "macro avg": {
+          "precision": 0.594200643220251,
+          "recall": 0.5666666666666665,
+          "f1-score": 0.56189337968999,
+          "support": 150.0
+        },
+        "weighted avg": {
+          "precision": 0.5942006432202511,
+          "recall": 0.5666666666666667,
+          "f1-score": 0.5618933796899899,
+          "support": 150.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          35,
+          12,
+          3
+        ],
+        [
+          13,
+          31,
+          6
+        ],
+        [
+          6,
+          25,
+          19
+        ]
+      ],
+      "nativeLabels": {
+        "0": "positive",
+        "1": "negative",
+        "2": "neutral"
+      }
+    }
+  }
+}
