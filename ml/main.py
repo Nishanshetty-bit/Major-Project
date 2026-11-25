@@ -72,41 +72,6 @@ def assets() -> dict[str, Any]:
     return {"status": "ok", "dataSource": "real historical data", "asOf": frame["date"].max().isoformat(), "assets": [{"symbol": row.symbol, "price": float(row.adjusted_close), "asOf": row.date.isoformat()} for row in latest.itertuples()]}
 
 
-@app.get("/ml/indian/stocks")
-def indian_stocks() -> dict[str, Any]:
-    path = ROOT / "models" / "indian_demo" / "sample_equity_universe.json"
-    if not path.exists(): return {"status":"unavailable","message":"Indian demo model artifacts are missing.","stocks":[]}
-    manifest = __import__("json").loads(path.read_text(encoding="utf-8"))
-    return {"status":"ok","stocks":manifest["symbols"]}
-
-
-@app.get("/ml/indian/predictions")
-def indian_predictions(symbol: str | None = None) -> dict[str, Any]:
-    import joblib
-    import numpy as np
-    import pandas as pd
-    base = ROOT / "models" / "indian_demo"
-    try:
-        manifest = __import__("json").loads((base / "sample_equity_universe.json").read_text(encoding="utf-8"))
-        selected = [s for s in manifest["symbols"] if symbol is None or s["symbol"] == symbol.upper()]
-        if not selected: return {"status":"unavailable","symbol":symbol,"message":"Unsupported Indian demo symbol.","predictions":{}}
-        data = ROOT / "data/processed/indian/nse_eod.parquet"
-        results=[]
-        for stock in selected:
-            rows=pd.read_parquet(data,filters=[("symbol","==",stock["symbol"])])
-            row=rows.dropna(subset=manifest["features"]).sort_values("date").iloc[-1]
-            values=pd.DataFrame([{f:float(row[f]) for f in manifest["features"]}])
-            horizons={}
-            for h in (5,20):
-                artifact=joblib.load(base/f"returns_{h}d.joblib")
-                probability=float(artifact["model"].predict_proba(values)[0,1])
-                if not np.isfinite(probability) or not 0<=probability<=1: raise ValueError("Invalid model probability.")
-                horizons[f"{h}d"]={"positiveReturnProbability":probability,"modelName":artifact["modelName"],"latestHistoricalDate":row["date"].isoformat(),"datasetFingerprint":artifact["datasetFingerprint"]}
-            results.append({"symbol":stock["symbol"],"predictionTimestamp":timestamp(),"horizons":horizons})
-        return {"status":"ok","predictions":results if symbol is None else results[0]}
-    except FileNotFoundError: return {"status":"unavailable","message":"Indian demo model artifacts are missing.","predictions":{}}
-
-
 @app.get("/ml/market/assets/{symbol}/history")
 def history(symbol: str) -> dict[str, Any]:
     market = ROOT / "data" / "processed" / "market.parquet"
