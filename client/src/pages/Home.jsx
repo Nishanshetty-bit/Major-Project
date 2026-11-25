@@ -39,6 +39,13 @@ function IndianQuotePanel() {
   </ScrollSection>
 }
 
+function IndianDemoPanel() {
+  const {data: listing}=useApi('/indian/stocks'); const [symbol,setSymbol]=useState('RELIANCE'); const [prediction,setPrediction]=useState(null)
+  const load=async(s=symbol)=>{try{setPrediction(await api('/indian/predictions?symbol='+encodeURIComponent(s)))}catch{setPrediction({status:'unavailable'})}}
+  useEffect(()=>{if(listing?.status==='ok'&&listing.stocks.some(s=>s.symbol===symbol))load(symbol)},[listing,symbol])
+  return <ScrollSection><SectionHead eyebrow="Indian market demo" title="NSE stock predictions" sub="Historical model probabilities, separate from live quotes."/><Card className="pad-lg col"><select className="input" value={symbol} onChange={e=>{setSymbol(e.target.value);setPrediction(null)}}>{(listing?.stocks||[]).map(s=><option key={s.symbol} value={s.symbol}>{s.companyName} ({s.symbol})</option>)}</select>{prediction?.status==='ok'&&prediction.horizons&&<div className="grid g2">{['5d','20d'].map(h=>{const p=prediction.horizons[h];return <Card className="pad flat" key={h}><b>{h==='5d'?'5 trading days':'20 trading days'}</b><div className="xl">{(p.positiveReturnProbability*100).toFixed(2)}%</div><div>{p.modelName} · Historical data as of {new Date(p.latestHistoricalDate).toLocaleDateString()}</div><div className="meter"><i style={{width:(p.positiveReturnProbability*100)+'%'}}/></div></Card>})}</div>}{prediction?.status==='unavailable'&&<div className="small muted">Indian demo predictions are unavailable.</div>}<small className="muted">Probability of positive adjusted-price return over the stated horizon; not a projected price or expected return.</small></Card></ScrollSection>
+}
+
 function Hero({ onStart }) {
   const nav = useNavigate()
   const ref = useRef(null)
@@ -150,6 +157,7 @@ export default function Home() {
       <Hero onStart={() => learnRef.current?.scrollIntoView({ behavior: 'smooth' })} />
       <div className="center tiny muted" style={{ marginTop: 8 }}><Chip tone="orange">Simulated demonstration data</Chip></div>
       <IndianQuotePanel />
+      <IndianDemoPanel />
       <RealMarketPanel />
       <ErrorBox error={error} onRetry={reload} />
       <ScrollSection ref={learnRef} className="learn-content" style={{ marginTop: 40 }}>

@@ -39,6 +39,8 @@ r.get('/assets/:id', wrap((req, res) => {
 r.post('/sentiment', wrap((req, res) => { if (typeof req.body.text !== 'string' || !req.body.text.trim()) throw bad('text is required'); res.json(sentiment(req.body.text.slice(0, 500))) }))
 r.get('/ml/health', async (req, res) => res.json(await mlHealth()))
 r.get('/market/quote', async (req, res) => res.json(await getIndianQuote(req.query.symbol, { exchange: req.query.exchange || 'NSE' })))
+r.get('/indian/stocks', async (req,res) => res.json(await mlGet('/ml/indian/stocks')))
+r.get('/indian/predictions', async (req,res) => res.json(await mlGet('/ml/indian/predictions'+(req.query.symbol?'?symbol='+encodeURIComponent(req.query.symbol):''))))
 r.get('/ml/market/assets', async (req, res) => res.json(await mlGet('/ml/market/assets')))
 r.get('/ml/market/assets/:symbol/history', async (req, res) => res.json(await mlGet(`/ml/market/assets/${encodeURIComponent(req.params.symbol)}/history`)))
 r.post('/ml/predict/returns', async (req, res) => res.json(await mlRequest('/ml/predict/returns', req.body)))
