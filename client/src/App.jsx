@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AppProvider } from './state/AppContext.jsx'
+import { AppProvider, useApp } from './state/AppContext.jsx'
 import { Navbar, JourneyBar, Tour, Dock } from './components/Shell.jsx'
 import { Toasts } from './components/ui.jsx'
+import LaunchReveal from './components/LaunchReveal.jsx'
 import Home from './pages/Home.jsx'
 import Budget from './pages/Budget.jsx'
 import Behaviour from './pages/Behaviour.jsx'
@@ -26,15 +28,22 @@ function Pages() {
     </AnimatePresence>
   )
 }
-export default function App() {
+function AppShell() {
+  const { theme } = useApp()
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+  }, [theme])
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <div className="aurora"><i /><i /><i /><i /></div>
-        <Navbar />
-        <Pages />
-        <Dock /><Tour /><Toasts />
-      </BrowserRouter>
-    </AppProvider>
+    <BrowserRouter>
+      <div className="aurora"><i /><i /><i /><i /></div>
+      <Navbar />
+      <Pages />
+      <Dock /><Tour /><Toasts />
+      <LaunchReveal />
+    </BrowserRouter>
   )
+}
+
+export default function App() {
+  return <AppProvider><AppShell /></AppProvider>
 }

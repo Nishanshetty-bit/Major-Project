@@ -1,36 +1,6 @@
 {
   "files": [
     {
-      "file": "market_commodities_train.parquet",
-      "rows": 49304,
-      "columns": [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "adj_close",
-        "volume",
-        "dividends",
-        "stock_splits",
-        "symbol"
-      ],
-      "nulls": {
-        "date": 0,
-        "open": 0,
-        "high": 0,
-        "low": 0,
-        "close": 0,
-        "adj_close": 0,
-        "volume": 0,
-        "dividends": 0,
-        "stock_splits": 0,
-        "symbol": 0
-      },
-      "duplicates": 0,
-      "negativeNumericValues": 5
-    },
-    {
       "file": "market_etfs_train.parquet",
       "rows": 52675,
       "columns": [
@@ -52,36 +22,6 @@
         "low": 0,
         "close": 379,
         "adj_close": 379,
-        "volume": 0,
-        "dividends": 0,
-        "stock_splits": 0,
-        "symbol": 0
-      },
-      "duplicates": 0,
-      "negativeNumericValues": 0
-    },
-    {
-      "file": "market_indices_train.parquet",
-      "rows": 71632,
-      "columns": [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "adj_close",
-        "volume",
-        "dividends",
-        "stock_splits",
-        "symbol"
-      ],
-      "nulls": {
-        "date": 0,
-        "open": 0,
-        "high": 0,
-        "low": 0,
-        "close": 22,
-        "adj_close": 22,
         "volume": 0,
         "dividends": 0,
         "stock_splits": 0,
