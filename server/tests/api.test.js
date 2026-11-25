@@ -33,6 +33,29 @@ test('validation errors', async () => {
   assert.equal((await post('/intervention/check', { assetId: 'nope' })).status, 400)
   assert.equal((await fetch(base + '/nothing')).status, 404)
 })
+test('AI chat proxies to Gemini and returns a page suggestion', async () => {
+  const previousKey = process.env.GEMINI_API_KEY
+  const originalFetch = globalThis.fetch
+  process.env.GEMINI_API_KEY = 'server-test-key'
+  globalThis.fetch = async (url, options) => {
+    if (!String(url).startsWith('https://generativelanguage.googleapis.com/')) return originalFetch(url, options)
+    assert.equal(options.headers['x-goog-api-key'], 'server-test-key')
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: 'Open the Budget page to plan allocations.' }] } }] }) }
+  }
+  try {
+    const response = await post('/ai/chat', { message: 'How do I make a budget plan?' })
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), {
+      answer: 'Open the Budget page to plan allocations.',
+      suggestedPage: { path: '/budget', label: 'Budget' },
+    })
+    assert.equal((await post('/ai/chat', { message: ' ' })).status, 400)
+  } finally {
+    globalThis.fetch = originalFetch
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY
+    else process.env.GEMINI_API_KEY = previousKey
+  }
+})
 test('behaviour → profile → intervention → outcome loop', async () => {
   const sc = await (await fetch(base + '/behavioral/scenarios?type=stock')).json()
   assert.equal(sc.scenarios.length, 10)

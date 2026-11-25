@@ -204,7 +204,7 @@ export function TryIt({ data }) {
   )
 }
 
-/* ───────────── Compare + quiz ───────────── */
+/* ───────────── Comparison table ───────────── */
 export function CompareTable({ types, compare, selected, onPick }) {
   return (
     <Card className="pad" style={{ overflowX: 'auto' }}>
@@ -219,33 +219,6 @@ export function CompareTable({ types, compare, selected, onPick }) {
     </Card>
   )
 }
-const Q = [
-  ['How would you feel if your money fell 20% in a month?', [['I would panic', 0], ['Worried but I would wait', 1], ['Buy more, it is on sale!', 2]]],
-  ['How much time do you want to spend on investing?', [['Almost none – set and forget', 0], ['A little each month', 1], ['I enjoy researching companies', 2]]],
-  ['Which sounds more like you?', [['Safety first, steady growth', 0], ['A balance of safe and bold', 1], ['I want the biggest upside', 2]]],
-]
-export function Quiz({ onPick }) {
-  const [a, setA] = useState([])
-  const done = a.length === Q.length
-  const sum = a.reduce((x, y) => x + y, 0)
-  const rec = sum <= 1 ? 'index' : sum <= 3 ? 'etf' : sum <= 4 ? 'mf' : 'stock'
-  const names = { index: 'Index Funds', etf: 'ETFs', mf: 'Mutual Funds', stock: 'Individual Stocks' }
-  const why = { index: 'You value calm and simplicity – automatic diversification at very low cost fits you.', etf: 'You like low cost and a bit of control – ETFs give index-style investing with live trading.', mf: 'You like a balance and prefer experts to do the research.', stock: 'You enjoy research and accept big swings. Just keep each stock small!' }
-  return (
-    <Card className="pad">
-      <div className="row between"><b style={{ fontSize: 18 }}><Icon name="target" size={16} /> Which one fits me?</b>{a.length > 0 && <Button size="sm" className="sm" onClick={() => setA([])}>Restart</Button>}</div>
-      <AnimatePresence mode="wait">
-        {!done ? <motion.div key={a.length} initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -30, opacity: 0 }} className="col" style={{ marginTop: 12 }}>
-          <div className="tiny faint">Question {a.length + 1} of {Q.length}</div><b>{Q[a.length][0]}</b>
-          {Q[a.length][1].map(([t, v]) => <Button key={t} onClick={() => setA([...a, v])} style={{ justifyContent: 'flex-start' }}>{t}</Button>)}
-        </motion.div> : <motion.div key="r" initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="col center" style={{ marginTop: 12, alignItems: 'center' }}>
-          <div style={{ color: 'var(--gold)' }}><Icon name="target" size={38} /></div><h3>Try <span className="grad-text">{names[rec]}</span> first</h3><p className="muted small">{why[rec]}</p>
-          <Button variant="primary" onClick={() => onPick(rec)}>Open the {names[rec]} lesson</Button></motion.div>}
-      </AnimatePresence>
-    </Card>
-  )
-}
-
 /* ───────────── Market timeline ───────────── */
 export function Timeline() {
   const { data } = useApi('/market')

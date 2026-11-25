@@ -11,11 +11,12 @@ export function AppProvider({ children }) {
   const [glossary, setGlossary] = useState({})
   const [toasts, setToasts] = useState([])
   const [panel, setPanel] = useState(null) // 'glossary' | 'help' | 'tour' | null
+  const [aiStock, setAIStock] = useState(null)
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)) } catch { /* private mode */ } }, [s])
   useEffect(() => { api('/glossary', { cached: true }).then(setGlossary).catch(() => {}) }, [])
   const toast = useCallback((text) => { const id = Math.random(); setToasts((t) => [...t, { id, text }]); setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2800) }, [])
   const value = useMemo(() => ({
-    ...s, glossary, toasts, toast, panel, setPanel,
+    ...s, glossary, toasts, toast, panel, setPanel, aiStock, setAIStock,
     setAssetType: (assetType) => setS((p) => ({ ...p, assetType })),
     setProfile: (profile) => setS((p) => ({ ...p, profile })),
     setBudget: (b) => setS((p) => ({ ...p, budget: { ...p.budget, ...b } })),
@@ -23,7 +24,7 @@ export function AppProvider({ children }) {
     markDone: (k) => setS((p) => (p.done[k] ? p : { ...p, done: { ...p.done, [k]: true } })),
     seeTour: () => setS((p) => ({ ...p, tourSeen: true })),
     reset: () => setS(initial),
-  }), [s, glossary, toasts, toast, panel])
+  }), [s, glossary, toasts, toast, panel, aiStock])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 export const useApp = () => useContext(Ctx)

@@ -4,42 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useApi } from '../hooks/index.js'
 import { useApp } from '../state/AppContext.jsx'
 import { Card, Button, Chip, Reveal, ScrollSection, SectionHead, Segmented, Meter, InfoTip, Term, Loading, ErrorBox } from '../components/ui.jsx'
-import { HowItWorks, InvestSteps, TryIt, CompareTable, Quiz, Timeline } from '../components/explain.jsx'
+import { HowItWorks, InvestSteps, TryIt, CompareTable, Timeline } from '../components/explain.jsx'
 import { LineChart } from '../components/charts.jsx'
 import { api } from '../lib/api.js'
 import { Icon, TYPE_ICON } from '../components/Icon.jsx'
 
 const TABS = [{ value: 'how', label: 'How it works' }, { value: 'invest', label: 'How to invest' }, { value: 'try', label: 'Try it' }, { value: 'pros', label: 'Pros & cons' }, { value: 'faq', label: 'FAQ' }]
 
-function IndianQuotePanel() {
-  const [symbol, setSymbol] = useState('RELIANCE')
-  const [quote, setQuote] = useState(null)
-  const [busy, setBusy] = useState(false)
-  const loadQuote = async () => {
-    const clean = symbol.trim().toUpperCase()
-    if (!clean) return
-    setBusy(true)
-    try { setQuote(await api(`/market/quote?symbol=${encodeURIComponent(clean)}&exchange=NSE`)) }
-    catch (error) { setQuote({ status: 'unavailable', symbol: clean, message: error.message }) }
-    finally { setBusy(false) }
-  }
-  useEffect(() => { loadQuote() }, [])
-  const price = (value) => value == null ? '—' : `₹${Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
-  return <ScrollSection><SectionHead eyebrow="NSE quote · external provider" title="Indian stock quote" sub="Quote data is fetched separately from model predictions and historical training data. Provider timestamps may not verify exchange real-time freshness." />
-    <Card className="pad-lg col">
-      <div className="row between wrap"><div className="row wrap"><input className="input" aria-label="NSE stock symbol" value={symbol} onChange={(e) => setSymbol(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && loadQuote()} placeholder="NSE symbol, e.g. RELIANCE" style={{ maxWidth: 260 }} /><Button onClick={loadQuote} disabled={busy}>{busy ? 'Loading…' : 'Refresh quote'}</Button></div>
-        {quote?.status === 'ok' && <Chip tone={quote.dataStatus === 'stale' ? 'orange' : 'green'}>{quote.dataStatus === 'cached' ? 'Cached' : quote.dataStatus === 'stale' ? 'Stale' : 'Fetched'}</Chip>}
-      </div>
-      {quote?.status === 'ok' ? <>
-        <div className="row between wrap"><div><b>{quote.companyName || quote.symbol}</b><div className="tiny muted">{quote.exchange} · {quote.provider}</div></div><div style={{ textAlign: 'right' }}><b className="num" style={{ fontSize: 28 }}>{price(quote.lastPrice)}</b><div className="tiny muted">{quote.change == null ? 'Change unavailable' : `${price(quote.change)} (${quote.changePercent ?? '—'}%)`}</div></div></div>
-        <div className="grid g3" style={{ marginTop: 12 }}>{[['Previous close', price(quote.previousClose)], ['Open', price(quote.open)], ['Day range', `${price(quote.dayLow)} – ${price(quote.dayHigh)}`], ['52 week range', `${price(quote.yearLow)} – ${price(quote.yearHigh)}`], ['Volume', quote.volume == null ? '—' : Number(quote.volume).toLocaleString('en-IN')], ['Market cap', price(quote.marketCap)]].map(([label, value]) => <Card key={label} className="pad flat"><div className="tiny muted">{label}</div><b>{value}</b></Card>)}</div>
-        <div className="tiny muted">Source: {quote.provider} · fetched {quote.fetchedAt ? new Date(quote.fetchedAt).toLocaleString() : 'time unavailable'} · provider market timestamp: {quote.marketTimestamp ?? 'not supplied'} · provider update: {quote.providerLastUpdate ?? 'not supplied'}. {quote.freshnessNote}</div>
-      </> : quote?.status === 'unavailable' ? <Card className="pad-sm flat small"><b>Quote unavailable.</b> {quote.message}</Card> : <div className="tiny muted">Enter an NSE symbol to request a quote.</div>}
-    </Card>
-  </ScrollSection>
-}
-
-function Hero({ onStart }) {
+function Hero({ onStart, onTutorial, tutorialActive }) {
   const nav = useNavigate()
   const ref = useRef(null)
   const move = (e) => { const r = ref.current.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; ref.current.style.setProperty('--px', x); ref.current.style.setProperty('--py', y) }
@@ -51,11 +23,12 @@ function Hero({ onStart }) {
       <div className="hero-float" style={{ left: '9%', bottom: 10, color: 'var(--gold)', animationDelay: '-4s' }}><div style={f(-20)}><Icon name="coin" size={42} /></div></div>
       <div className="hero-float" style={{ right: '10%', bottom: 0, color: 'var(--gold)', animationDelay: '-1s' }}><div style={f(24)}><Icon name="chart" size={46} /></div></div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}><Chip tone="blue">Beginner friendly · demo scenarios preserved</Chip></motion.div>
-      <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, type: 'spring' }} style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(38px, 7vw, 74px)', fontWeight: 700, margin: '16px auto 14px', maxWidth: 860 }}>Invest with <span className="grad-text">understanding</span>,<br />not <span className="grad-text">emotion</span>.</motion.h1>
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="muted" style={{ fontSize: 19, maxWidth: 640, margin: '0 auto 28px' }}>See how stocks, funds and ETFs actually work, build a plan for your budget, discover your money personality and get warned <i>before</i> you make a decision you will regret.</motion.p>
+      <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, type: 'spring' }} style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(38px, 7vw, 74px)', fontWeight: 700, margin: '16px auto 14px', maxWidth: 900 }}><span className="grad-text">Personalized Stock Advisory</span><br />for Smarter Retail Investing</motion.h1>
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="muted" style={{ fontSize: 19, maxWidth: 640, margin: '0 auto 28px' }}>Learn how investments work, explore market evidence, and build a plan that fits your budget and comfort with risk.</motion.p>
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="row center wrap">
         <Button variant="primary" size="lg" onClick={onStart}>Start learning ↓</Button>
         <Button size="lg" onClick={() => nav('/budget')}><Icon name="wallet" size={18} /> Build my plan</Button>
+        <Button size="lg" variant={tutorialActive ? 'primary' : ''} onClick={onTutorial} aria-pressed={tutorialActive}><Icon name="question" size={18} /> Tutorial</Button>
       </motion.div>
       <div className="row center wrap" style={{ marginTop: 34, gap: 26 }}>{[['4', 'ways to invest'], ['19', 'simulated assets'], ['10', 'pressure tests'], ['1', 'regret engine']].map(([n, l], i) => <Reveal key={l} delay={0.5 + i * 0.1}><div><div className="xl grad-text">{n}</div><div className="small muted">{l}</div></div></Reveal>)}</div>
     </section>
@@ -102,7 +75,7 @@ function RealMarketPanel() {
     </Card></ScrollSection>
 }
 
-function Explainer({ t }) {
+function Explainer({ t, onTutorialStep }) {
   const [tab, setTab] = useState('how')
   const nav = useNavigate()
   const { setAssetType, setBudget, toast } = useApp()
@@ -115,7 +88,7 @@ function Explainer({ t }) {
           <Button variant="primary" onClick={() => { setAssetType(t.id); setBudget({ types: [t.id] }); toast(`Great – ${t.title} selected for your plan`); nav('/budget') }}>Invest in {t.title} →</Button>
         </div>
         <Card className="pad-sm flat" style={{ borderRadius: 20 }}><Icon name="bulb" size={17} /> <b>Think of it like this:</b> <span className="muted">{t.analogy}</span></Card>
-        <div style={{ overflowX: 'auto' }}><Segmented options={TABS} value={tab} onChange={setTab} /></div>
+        <div data-tutorial="lesson-tabs" onClick={onTutorialStep} style={{ overflowX: 'auto' }}><Segmented options={TABS} value={tab} onChange={setTab} /></div>
         <AnimatePresence mode="wait">
           <motion.div key={tab} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
             {tab === 'how' && <HowItWorks data={t} />}
@@ -141,28 +114,72 @@ function Explainer({ t }) {
 export default function Home() {
   const { data, error, reload } = useApi('/education')
   const { assetType, setAssetType, markDone, toast } = useApp()
+  const [tutorialStep, setTutorialStep] = useState(-1)
+  const [tutorialIdle, setTutorialIdle] = useState(false)
   const panelRef = useRef(null)
   const learnRef = useRef(null)
   const sel = data?.types.find((t) => t.id === assetType)
-  const pick = (id) => { setAssetType(id); markDone('learned'); setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120) }
+  const pick = (id) => {
+    setAssetType(id)
+    markDone('learned')
+    if (tutorialStep === 0) setTutorialStep(1)
+    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+  }
+  useEffect(() => {
+    if (tutorialStep < 0) return undefined
+    const selectors = ['[data-tutorial="lesson-cards"]', '[data-tutorial="lesson-tabs"]', '[data-tutorial="compare-section"]', '[data-tutorial="compare-section"]']
+    const selector = selectors[tutorialStep]
+    const target = selector ? document.querySelector(selector) : null
+    target?.classList.add('tutorial-highlight')
+    if (tutorialStep < 2) target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    let idleTimer
+    const resetIdle = () => {
+      setTutorialIdle(false)
+      window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(() => setTutorialIdle(true), 5000)
+    }
+    const advanceOnScroll = () => {
+      const compare = document.querySelector('[data-tutorial="compare-section"]')
+      if (compare && compare.getBoundingClientRect().top < window.innerHeight * 0.85) setTutorialStep(3)
+    }
+    const onScroll = () => { resetIdle(); if (tutorialStep === 2) advanceOnScroll() }
+    window.addEventListener('pointerdown', resetIdle)
+    window.addEventListener('keydown', resetIdle)
+    window.addEventListener('wheel', resetIdle, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
+    resetIdle()
+    return () => {
+      target?.classList.remove('tutorial-highlight')
+      window.clearTimeout(idleTimer)
+      window.removeEventListener('pointerdown', resetIdle)
+      window.removeEventListener('keydown', resetIdle)
+      window.removeEventListener('wheel', resetIdle)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [tutorialStep, data])
+  const tutorialMessages = [
+    'Choose any investment type to open its lesson.',
+    'Pick a lesson tab to explore how it works, how to invest, and more.',
+    'Scroll down to compare the four investment types.',
+    'You reached the comparison. Click a column heading to open that lesson.',
+  ]
   return (
     <>
-      <Hero onStart={() => learnRef.current?.scrollIntoView({ behavior: 'smooth' })} />
+      <Hero onStart={() => learnRef.current?.scrollIntoView({ behavior: 'smooth' })} tutorialActive={tutorialStep >= 0} onTutorial={() => setTutorialStep(tutorialStep < 0 ? 0 : -1)} />
       <div className="center tiny muted" style={{ marginTop: 8 }}><Chip tone="orange">Simulated demonstration data</Chip></div>
-      <IndianQuotePanel />
       <RealMarketPanel />
       <ErrorBox error={error} onRetry={reload} />
       <ScrollSection ref={learnRef} className="learn-content" style={{ marginTop: 40 }}>
         <SectionHead eyebrow="Module 1 · Explainable investing" title="Four ways to grow your money" sub="Tap any card. Each has an animated diagram of where your money goes, a phone walkthrough of how to start, and a hands-on playground." />
         {!data && !error && <Loading rows={1} h={260} />}
-        {data && <div className="grid g4">{data.types.map((t, i) => <TypeCard key={t.id} t={t} i={i} on={t.id === assetType} onPick={pick} />)}</div>}
+        {data && <div className="grid g4" data-tutorial="lesson-cards">{data.types.map((t, i) => <TypeCard key={t.id} t={t} i={i} on={t.id === assetType} onPick={pick} />)}</div>}
         <div ref={panelRef} style={{ scrollMarginTop: 90, marginTop: 24 }}>
-          <AnimatePresence mode="wait">{sel ? <Explainer key={sel.id} t={sel} /> : data && <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="center muted" style={{ padding: 24 }}><Icon name="target" size={16} /> Pick a card to see exactly how it works.</motion.div>}</AnimatePresence>
+          <AnimatePresence mode="wait">{sel ? <Explainer key={sel.id} t={sel} onTutorialStep={tutorialStep === 1 ? () => setTutorialStep(2) : undefined} /> : data && <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="center muted" style={{ padding: 24 }}><Icon name="target" size={16} /> Pick a card to see exactly how it works.</motion.div>}</AnimatePresence>
         </div>
       </ScrollSection>
 
-      {data && <ScrollSection><SectionHead eyebrow="Side by side" title="Compare all four" sub={<>Bars show <Term k="volatility">risk</Term>, cost, effort, <Term k="diversification">diversification</Term> and <Term k="liquidity">sell speed</Term>. Click a column heading to open that lesson.</>} />
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', alignItems: 'start' }}><div style={{ gridColumn: 'span 2' }}><CompareTable types={data.types} compare={data.compare} selected={assetType} onPick={pick} /></div><Quiz onPick={pick} /></div></ScrollSection>}
+      {data && <ScrollSection data-tutorial="compare-section"><SectionHead eyebrow="Side by side" title="Compare all four" sub={<>Bars show <Term k="volatility">risk</Term>, cost, effort, <Term k="diversification">diversification</Term> and <Term k="liquidity">sell speed</Term>. Click a column heading to open that lesson.</>} />
+        <CompareTable types={data.types} compare={data.compare} selected={assetType} onPick={pick} /></ScrollSection>}
 
       <ScrollSection><SectionHead eyebrow="Learn from history" title="The simulated market's story" sub="Crashes and bubbles are normal. This 5-year fake market contains both – the rest of the app uses them to test your plan and your nerves." /><Timeline /></ScrollSection>
 
@@ -170,6 +187,11 @@ export default function Home() {
         <div className="grid g3">
           {[[ 'wallet', 'Budget plan', 'Turn your amount into a diversified portfolio and see 1, 2 and 3-year back-tests.', '/budget'], ['brain', 'Behaviour test', '10 pressure scenarios reveal how you really act under stress.', '/behaviour'], ['shield', 'Pre-decision shield', 'Get a regret warning before buying or selling.', '/pre-decision']].map(([e, t, d, p], i) => <Link3 key={p} {...{ e, t, d, p, i }} />)}
         </div></ScrollSection>
+      {tutorialStep >= 0 && <aside className="tutorial-guide" role="status" aria-live="polite">
+        <div className="row between"><b>Tutorial · {tutorialStep === 3 ? 'Complete' : `Step ${tutorialStep + 1} of 3`}</b><button className="tutorial-close" onClick={() => setTutorialStep(-1)} aria-label="End tutorial">×</button></div>
+        <p>{tutorialIdle && tutorialStep < 3 ? (tutorialStep === 2 ? 'Whenever you are ready, scroll down to continue.' : 'Whenever you are ready, follow the highlighted area.') : tutorialMessages[tutorialStep]}</p>
+        {tutorialStep === 3 && <Button size="sm" className="sm" onClick={() => setTutorialStep(-1)}>Finish tutorial</Button>}
+      </aside>}
     </>
   )
 }

@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { useApp } from '../state/AppContext.jsx'
 import { Button, Card, Sheet, Modal } from './ui.jsx'
 import { Icon } from './Icon.jsx'
+import StockSearch from './StockSearch.jsx'
+import AIAssistant from './AIAssistant.jsx'
 
 export const NAV = [
   { label: 'Learn', icon: 'book', path: '/' },
@@ -15,6 +17,7 @@ export const NAV = [
 export function Navbar() {
   const nav = useNavigate(), loc = useLocation(), { setPanel, theme, setTheme } = useApp()
   const wrap = useRef(null), hover = useRef(null)
+  const [stocksOpen, setStocksOpen] = useState(false)
   const idx = Math.max(0, NAV.findIndex((n) => n.path === loc.pathname))
   const [pill, setPill] = useState({ left: 5, width: 0 })
   useLayoutEffect(() => {
@@ -34,8 +37,10 @@ export function Navbar() {
           </button>
         ))}
       </nav>
+      <button className="theme-toggle nav-search" onClick={() => setStocksOpen(true)} aria-label="Open stock search" title="Search stocks"><Icon name="search" /></button>
       <button className="theme-toggle" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}><Icon name={theme === 'light' ? 'moon' : 'sun'} /></button>
       <button className="logo-btn" style={{ padding: 8 }} onClick={() => setPanel('tour')} aria-label="Replay welcome tour" title="Welcome tour"><span className="logo-dot"><Icon name="question" size={17} /></span></button>
+      <StockSearch open={stocksOpen} onClose={() => setStocksOpen(false)} />
     </header>
   )
 }
@@ -95,7 +100,7 @@ export const HELP = {
     ['Animated diagram', 'Coins show where your money travels. Tap a step on the right to jump to it, or press ⏯ to pause.'],
     ['How to invest tab', 'A phone mock-up shows every screen you will see in a real investing app. Use Next/Back or tap the dots.'],
     ['Try it tab', 'Move the slider to see what your money buys. Press "Crash a company" to feel why diversification matters.'],
-    ['Compare table', 'Click a column to switch type. The "Which one fits me?" quiz recommends one in 3 questions.'],
+    ['Compare table', 'Click a column heading to open that investment type lesson.'],
     ['Market timeline', 'Hover the chart. Coloured bands are the simulated crash, recovery and bubble that the other modules use.'],
     ['Dotted words', 'Hover or tap any dotted-underline word to see its meaning. The Aa button opens the full glossary.'],
   ],
@@ -127,7 +132,7 @@ export const HELP = {
 }
 
 export function Dock() {
-  const { setPanel, panel, glossary } = useApp()
+  const { setPanel, panel, glossary, setAIStock } = useApp()
   const loc = useLocation()
   const [q, setQ] = useState('')
   const items = HELP[loc.pathname] || []
@@ -135,6 +140,7 @@ export function Dock() {
   return (
     <>
       <div className="dock">
+        <Button className="icon" onClick={() => { setAIStock(null); setPanel('ai') }} aria-label="Chat with AI" title="Chat with AI"><Icon name="message" /></Button>
         <Button className="icon" onClick={() => setPanel('help')} aria-label="Explain this page" title="Explain this page"><Icon name="bulb" /></Button>
         <Button className="icon" onClick={() => setPanel('glossary')} aria-label="Open glossary" title="Glossary"><b>Aa</b></Button>
       </div>
@@ -148,6 +154,7 @@ export function Dock() {
         <input className="input" placeholder="Search a word…" value={q} onChange={(e) => setQ(e.target.value)} style={{ marginBottom: 12 }} aria-label="Search glossary" />
         <div className="col">{terms.map(([t, d]) => <div key={t}><b>{t}</b><p className="muted small">{d}</p><div className="divider" /></div>)}{!terms.length && <p className="muted">No match.</p>}</div>
       </Sheet>
+      <AIAssistant />
     </>
   )
 }

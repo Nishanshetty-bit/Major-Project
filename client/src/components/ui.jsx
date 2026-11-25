@@ -39,14 +39,14 @@ export function Reveal({ children, delay = 0, className = '', style }) {
   return <div ref={ref} className={`reveal ${seen ? 'in' : ''} ${className}`} style={{ '--d': `${delay}s`, ...style }}>{children}</div>
 }
 
-export const ScrollSection = forwardRef(function ScrollSection({ children, className = '', style }, forwardedRef) {
+export const ScrollSection = forwardRef(function ScrollSection({ children, className = '', style, ...rest }, forwardedRef) {
   const [ref, seen] = useInView()
   const setRef = (node) => {
     ref.current = node
     if (typeof forwardedRef === 'function') forwardedRef(node)
     else if (forwardedRef) forwardedRef.current = node
   }
-  return <section ref={setRef} style={style} className={`sec reveal ${seen ? 'in' : ''} ${className}`}>{children}</section>
+  return <section ref={setRef} style={style} className={`sec reveal ${seen ? 'in' : ''} ${className}`} {...rest}>{children}</section>
 })
 
 export function SectionHead({ eyebrow, title, sub, center }) {

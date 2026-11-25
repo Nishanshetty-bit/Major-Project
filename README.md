@@ -9,6 +9,9 @@ npm run install:all     # installs root, server and client
 npm run dev             # API on :5000 + website on :5173  â†’ open http://localhost:5173
 ```
 Or in two terminals: `cd server && npm install && npm start`  and  `cd client && npm install && npm run dev`.
+If API port 5000 is already in use in PowerShell, run `$env:PORT='5001'; npm run dev`; the website proxy follows the API port and Vite will choose the next available web port.
+
+The AI assistant uses Gemini through the server. Copy `.env.example` settings into `server/.env` and set `GEMINI_API_KEY`; the key is never sent to the browser. The AI chat offers project page shortcuts, beginner-friendly explanations, and quote-context explanations for selected stocks. AI output is educational, not financial advice.
 
 Tests: `npm test` (7 API tests) Â· with the server running: `cd client && npm test` (UI smoke test of all 4 pages).
 
@@ -97,7 +100,7 @@ The Indian source audit uses TejHQ NSE EOD files with raw OHLCV and documented a
 
 Run `python ml/scripts/train_indian_candidate.py` to filter the classified rows and reuse the purged walk-forward validation, final holdout, calibration, per-symbol metrics and volatility-regime report. The current full candidate has 4,182,723 rows from 2,417 symbols (2010-01-04 to 2026-11-23). It uses the existing 15 features and logistic regression to keep the full cross-section trainable on a workstation. Its untouched holdout ROC AUC is 0.511 for 5-day and 0.489 for 20-day returns; uncalibrated Brier scores are worse than constant-prevalence baselines, so the summary recommends against activation. Candidate artifacts go only to `ml/models/indian_candidate/` and `ml/reports/indian_candidate/`. This does not change production model paths or serving behavior.
 
-The independent NSE quote panel calls `GET /api/market/quote?symbol=RELIANCE` through Express. Configure `INDIAN_STOCK_API_BASE_URL` with an accessible deployment of [0xramm/Indian-Stock-Market-API](https://github.com/0xramm/Indian-Stock-Market-API). That project fetches Yahoo Finance data; the quote path labels fetched, cached, stale and unavailable states and does not call a quote exchange-verified real-time feed. Without a configured provider URL it reports unavailable. Quotes are display-only and never enter historical ML.
+Use the navbar's stock-search button to browse popular NSE symbols, search by company or symbol, and open a quote without leaving the current page. Express proxies these requests through `GET /api/market/stocks`, `GET /api/market/search?q=infosys` and `GET /api/market/quote?symbol=RELIANCE`. Run the supplied [0xramm/Indian-Stock-Market-API](https://github.com/0xramm/Indian-Stock-Market-API) archive with `npm install` and `npm run dev` (its local Wrangler URL defaults to `http://127.0.0.1:8787`), or set `INDIAN_STOCK_API_BASE_URL` to another accessible deployment. That API fetches Yahoo Finance data; quotes may be delayed or cached and are not independently verified as exchange real-time. If the provider is unavailable, the website reports that rather than showing simulated values. Quotes are display-only and never enter historical ML.
 
 ## Real portfolio methodology
 
