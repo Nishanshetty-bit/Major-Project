@@ -46,6 +46,8 @@ r.post('/ai/chat', rateLimit({ max: 30 }), wrap(async (req, res) => {
   const body = req.body || {}
   res.json(await chatWithGemini({ message: body.message, history: body.history, stock: body.stock }))
 }))
+r.get('/indian/stocks', async (req,res) => res.json(await mlGet('/ml/indian/stocks')))
+r.get('/indian/predictions', async (req,res) => res.json(await mlGet('/ml/indian/predictions'+(req.query.symbol?'?symbol='+encodeURIComponent(req.query.symbol):''))))
 r.get('/ml/market/assets', async (req, res) => res.json(await mlGet('/ml/market/assets')))
 r.get('/ml/market/assets/:symbol/history', async (req, res) => res.json(await mlGet(`/ml/market/assets/${encodeURIComponent(req.params.symbol)}/history`)))
 r.post('/ml/predict/returns', async (req, res) => res.json(await mlRequest('/ml/predict/returns', req.body)))

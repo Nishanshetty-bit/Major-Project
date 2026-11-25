@@ -11,6 +11,41 @@ import { Icon, TYPE_ICON } from '../components/Icon.jsx'
 
 const TABS = [{ value: 'how', label: 'How it works' }, { value: 'invest', label: 'How to invest' }, { value: 'try', label: 'Try it' }, { value: 'pros', label: 'Pros & cons' }, { value: 'faq', label: 'FAQ' }]
 
+function IndianQuotePanel() {
+  const [symbol, setSymbol] = useState('RELIANCE')
+  const [quote, setQuote] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const loadQuote = async () => {
+    const clean = symbol.trim().toUpperCase()
+    if (!clean) return
+    setBusy(true)
+    try { setQuote(await api(`/market/quote?symbol=${encodeURIComponent(clean)}&exchange=NSE`)) }
+    catch (error) { setQuote({ status: 'unavailable', symbol: clean, message: error.message }) }
+    finally { setBusy(false) }
+  }
+  useEffect(() => { loadQuote() }, [])
+  const price = (value) => value == null ? '—' : `₹${Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+  return <ScrollSection><SectionHead eyebrow="NSE quote · external provider" title="Indian stock quote" sub="Quote data is fetched separately from model predictions and historical training data. Provider timestamps may not verify exchange real-time freshness." />
+    <Card className="pad-lg col">
+      <div className="row between wrap"><div className="row wrap"><input className="input" aria-label="NSE stock symbol" value={symbol} onChange={(e) => setSymbol(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && loadQuote()} placeholder="NSE symbol, e.g. RELIANCE" style={{ maxWidth: 260 }} /><Button onClick={loadQuote} disabled={busy}>{busy ? 'Loading…' : 'Refresh quote'}</Button></div>
+        {quote?.status === 'ok' && <Chip tone={quote.dataStatus === 'stale' ? 'orange' : 'green'}>{quote.dataStatus === 'cached' ? 'Cached' : quote.dataStatus === 'stale' ? 'Stale' : 'Fetched'}</Chip>}
+      </div>
+      {quote?.status === 'ok' ? <>
+        <div className="row between wrap"><div><b>{quote.companyName || quote.symbol}</b><div className="tiny muted">{quote.exchange} · {quote.provider}</div></div><div style={{ textAlign: 'right' }}><b className="num" style={{ fontSize: 28 }}>{price(quote.lastPrice)}</b><div className="tiny muted">{quote.change == null ? 'Change unavailable' : `${price(quote.change)} (${quote.changePercent ?? '—'}%)`}</div></div></div>
+        <div className="grid g3" style={{ marginTop: 12 }}>{[['Previous close', price(quote.previousClose)], ['Open', price(quote.open)], ['Day range', `${price(quote.dayLow)} – ${price(quote.dayHigh)}`], ['52 week range', `${price(quote.yearLow)} – ${price(quote.yearHigh)}`], ['Volume', quote.volume == null ? '—' : Number(quote.volume).toLocaleString('en-IN')], ['Market cap', price(quote.marketCap)]].map(([label, value]) => <Card key={label} className="pad flat"><div className="tiny muted">{label}</div><b>{value}</b></Card>)}</div>
+        <div className="tiny muted">Source: {quote.provider} · fetched {quote.fetchedAt ? new Date(quote.fetchedAt).toLocaleString() : 'time unavailable'} · provider market timestamp: {quote.marketTimestamp ?? 'not supplied'} · provider update: {quote.providerLastUpdate ?? 'not supplied'}. {quote.freshnessNote}</div>
+      </> : quote?.status === 'unavailable' ? <Card className="pad-sm flat small"><b>Quote unavailable.</b> {quote.message}</Card> : <div className="tiny muted">Enter an NSE symbol to request a quote.</div>}
+    </Card>
+  </ScrollSection>
+}
+
+function IndianDemoPanel() {
+  const {data: listing}=useApi('/indian/stocks'); const [symbol,setSymbol]=useState('RELIANCE'); const [prediction,setPrediction]=useState(null)
+  const load=async(s=symbol)=>{try{setPrediction(await api('/indian/predictions?symbol='+encodeURIComponent(s)))}catch{setPrediction({status:'unavailable'})}}
+  useEffect(()=>{if(listing?.status==='ok'&&listing.stocks.some(s=>s.symbol===symbol))load(symbol)},[listing,symbol])
+  return <ScrollSection><SectionHead eyebrow="Indian market demo" title="NSE stock predictions" sub="Historical model probabilities, separate from live quotes."/><Card className="pad-lg col"><select className="input" value={symbol} onChange={e=>{setSymbol(e.target.value);setPrediction(null)}}>{(listing?.stocks||[]).map(s=><option key={s.symbol} value={s.symbol}>{s.companyName} ({s.symbol})</option>)}</select>{prediction?.status==='ok'&&prediction.horizons&&<div className="grid g2">{['5d','20d'].map(h=>{const p=prediction.horizons[h];return <Card className="pad flat" key={h}><b>{h==='5d'?'5 trading days':'20 trading days'}</b><div className="xl">{(p.positiveReturnProbability*100).toFixed(2)}%</div><div>{p.modelName} · Historical data as of {new Date(p.latestHistoricalDate).toLocaleDateString()}</div><div className="meter"><i style={{width:(p.positiveReturnProbability*100)+'%'}}/></div></Card>})}</div>}{prediction?.status==='unavailable'&&<div className="small muted">Indian demo predictions are unavailable.</div>}<small className="muted">Probability of positive adjusted-price return over the stated horizon; not a projected price or expected return.</small></Card></ScrollSection>
+}
+
 function Hero({ onStart, onTutorial, tutorialActive }) {
   const nav = useNavigate()
   const ref = useRef(null)
@@ -167,6 +202,8 @@ export default function Home() {
     <>
       <Hero onStart={() => learnRef.current?.scrollIntoView({ behavior: 'smooth' })} tutorialActive={tutorialStep >= 0} onTutorial={() => setTutorialStep(tutorialStep < 0 ? 0 : -1)} />
       <div className="center tiny muted" style={{ marginTop: 8 }}><Chip tone="orange">Simulated demonstration data</Chip></div>
+      <IndianQuotePanel />
+      <IndianDemoPanel />
       <RealMarketPanel />
       <ErrorBox error={error} onRetry={reload} />
       <ScrollSection ref={learnRef} className="learn-content" style={{ marginTop: 40 }}>
