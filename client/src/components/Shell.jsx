@@ -3,16 +3,17 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useApp } from '../state/AppContext.jsx'
 import { Button, Card, Sheet, Modal } from './ui.jsx'
+import { Icon } from './Icon.jsx'
 
 export const NAV = [
-  { label: 'Learn', icon: '🏠', path: '/' },
-  { label: 'Budget', icon: '💼', path: '/budget' },
-  { label: 'Behaviour', icon: '🧠', path: '/behaviour' },
-  { label: 'Pre-Decision', icon: '🛡️', path: '/pre-decision' },
+  { label: 'Learn', icon: 'book', path: '/' },
+  { label: 'Budget', icon: 'wallet', path: '/budget' },
+  { label: 'Behaviour', icon: 'brain', path: '/behaviour' },
+  { label: 'Pre-Decision', icon: 'shield', path: '/pre-decision' },
 ]
 
 export function Navbar() {
-  const nav = useNavigate(), loc = useLocation(), { setPanel } = useApp()
+  const nav = useNavigate(), loc = useLocation(), { setPanel, theme, setTheme } = useApp()
   const wrap = useRef(null), hover = useRef(null)
   const idx = Math.max(0, NAV.findIndex((n) => n.path === loc.pathname))
   const [pill, setPill] = useState({ left: 5, width: 0 })
@@ -23,31 +24,32 @@ export function Navbar() {
   const over = (e) => { const h = hover.current, b = e.currentTarget; if (!h) return; h.style.opacity = 1; h.style.left = b.offsetLeft - 6 + 'px'; h.style.width = b.offsetWidth + 12 + 'px' }
   return (
     <header className="nav-wrap">
-      <button className="logo-btn" onClick={() => nav('/')} aria-label="Home"><span className="logo-dot">₹</span>FinSense</button>
+      <button className="logo-btn" onClick={() => nav('/')} aria-label="Home"><span className="logo-dot"><Icon name="chart" size={17} /></span><span className="logo-word">FinSense</span></button>
       <nav className="nav-pill" ref={wrap} onMouseLeave={() => hover.current && (hover.current.style.opacity = 0)} aria-label="Main">
         <span className="active-pill" style={pill} />
         <span className="hover-lens" ref={hover} />
         {NAV.map((n, i) => (
           <button key={n.path} className={`nav-item ${i === idx ? 'active' : ''}`} onMouseEnter={over} onClick={() => nav(n.path)} aria-current={i === idx ? 'page' : undefined}>
-            <span className="ic">{n.icon}</span>{n.label}
+            <span className="ic"><Icon name={n.icon} size={17} /></span>{n.label}
           </button>
         ))}
       </nav>
-      <button className="logo-btn" style={{ padding: 8 }} onClick={() => setPanel('tour')} aria-label="Replay welcome tour" title="Welcome tour"><span className="logo-dot" style={{ background: 'linear-gradient(135deg,#ff9f0a,#ff375f)' }}>?</span></button>
+      <button className="theme-toggle" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}><Icon name={theme === 'light' ? 'moon' : 'sun'} /></button>
+      <button className="logo-btn" style={{ padding: 8 }} onClick={() => setPanel('tour')} aria-label="Replay welcome tour" title="Welcome tour"><span className="logo-dot"><Icon name="question" size={17} /></span></button>
     </header>
   )
 }
 
 export function JourneyBar() {
   const loc = useLocation(), nav = useNavigate(), { done } = useApp()
-  const steps = [{ k: 'learned', l: 'Learn', e: '📚', p: '/' }, { k: 'budgeted', l: 'Plan', e: '💼', p: '/budget' }, { k: 'profiled', l: 'Know yourself', e: '🧠', p: '/behaviour' }, { k: 'protected', l: 'Stay safe', e: '🛡️', p: '/pre-decision' }]
+  const steps = [{ k: 'learned', l: 'Learn', e: 'book', p: '/' }, { k: 'budgeted', l: 'Plan', e: 'wallet', p: '/budget' }, { k: 'profiled', l: 'Know yourself', e: 'brain', p: '/behaviour' }, { k: 'protected', l: 'Stay safe', e: 'shield', p: '/pre-decision' }]
   return (
     <div className="journey" aria-label="Your journey">
       {steps.map((s, i) => (
         <div key={s.k} style={{ display: 'contents' }}>
           {i > 0 && <div className={`j-line ${done[steps[i - 1].k] ? 'done' : ''}`}><i /></div>}
           <button className={`j-step ${done[s.k] ? 'done' : ''} ${loc.pathname === s.p ? 'here' : ''}`} onClick={() => nav(s.p)} title={`Go to ${s.l}`}>
-            <div className="j-dot">{done[s.k] ? '✓' : s.e}</div><span>{s.l}</span>
+            <div className="j-dot">{done[s.k] ? <Icon name="check" size={16} /> : <Icon name={s.e} size={16} />}</div><span>{s.l}</span>
           </button>
         </div>
       ))}
@@ -56,10 +58,10 @@ export function JourneyBar() {
 }
 
 const SLIDES = [
-  { e: '📚', t: 'Learn how money grows', d: 'Stocks, mutual funds, index funds and ETFs explained with simple animations. No jargon, no pressure.' },
-  { e: '💼', t: 'Build a plan for your budget', d: 'Tell us how much you have. We split it across smart picks and show what happened in the past – including what happens if you choose wrong.' },
-  { e: '🧠', t: 'Discover your money personality', d: 'Ten stressful, realistic situations reveal your biases – panic, FOMO, greed – before they cost you real money.' },
-  { e: '🛡️', t: 'Get a warning before you regret', d: 'Before you buy or sell, our engine compares your habits with market history and nudges you if the odds of regret are high.' },
+  { e: 'book', t: 'Learn how money grows', d: 'Stocks, mutual funds, index funds and ETFs explained with simple animations. No jargon, no pressure.' },
+  { e: 'wallet', t: 'Build a plan for your budget', d: 'Tell us how much you have. We split it across smart picks and show what happened in the past – including what happens if you choose wrong.' },
+  { e: 'brain', t: 'Discover your money personality', d: 'Ten stressful, realistic situations reveal your biases – panic, FOMO, greed – before they cost you real money.' },
+  { e: 'shield', t: 'Get a warning before you regret', d: 'Before you buy or sell, our engine compares your habits with market history and nudges you if the odds of regret are high.' },
 ]
 export function Tour() {
   const { panel, setPanel, seeTour, tourSeen } = useApp()
@@ -71,14 +73,14 @@ export function Tour() {
     <Modal open={open} onClose={close}>
       <div className="center col" style={{ alignItems: 'center', textAlign: 'center', minHeight: 330 }}>
         <div className="eyebrow">Welcome to FinSense · {i + 1} / {SLIDES.length}</div>
-        <motion.div key={i} initial={{ scale: 0.3, rotate: -30, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} style={{ fontSize: 84, margin: '10px 0' }}>{s.e}</motion.div>
+        <motion.div key={i} initial={{ scale: 0.3, rotate: -30, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} style={{ margin: '10px 0', color: 'var(--gold)' }}><Icon name={s.e} size={72} /></motion.div>
         <motion.h2 key={'t' + i} initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ fontSize: 28, fontWeight: 800 }}>{s.t}</motion.h2>
         <motion.p key={'d' + i} initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.08 }} className="muted" style={{ maxWidth: 420 }}>{s.d}</motion.p>
         <div className="row" style={{ gap: 7, margin: '14px 0 4px' }}>{SLIDES.map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} style={{ width: k === i ? 26 : 8, height: 8, borderRadius: 9, border: 'none', background: k === i ? 'var(--blue)' : 'rgba(120,120,140,.3)', transition: 'all .4s var(--spring)' }} />)}</div>
         <div className="row" style={{ marginTop: 10 }}>
           <Button variant="ghost" onClick={close}>Skip</Button>
           {i > 0 && <Button onClick={() => setI(i - 1)}>Back</Button>}
-          <Button variant="primary" onClick={() => (i < SLIDES.length - 1 ? setI(i + 1) : close())}>{i < SLIDES.length - 1 ? 'Next' : "Let's go 🚀"}</Button>
+          <Button variant="primary" onClick={() => (i < SLIDES.length - 1 ? setI(i + 1) : close())}>{i < SLIDES.length - 1 ? 'Next' : "Let's go"}</Button>
         </div>
         <p className="tiny faint" style={{ marginTop: 6 }}>All market data here is simulated for learning. Nothing is financial advice.</p>
       </div>
@@ -133,13 +135,13 @@ export function Dock() {
   return (
     <>
       <div className="dock">
-        <Button className="icon" onClick={() => setPanel('help')} aria-label="Explain this page" title="Explain this page">💡</Button>
+        <Button className="icon" onClick={() => setPanel('help')} aria-label="Explain this page" title="Explain this page"><Icon name="bulb" /></Button>
         <Button className="icon" onClick={() => setPanel('glossary')} aria-label="Open glossary" title="Glossary"><b>Aa</b></Button>
       </div>
       <Sheet open={panel === 'help'} onClose={() => setPanel(null)} title="What can I click here?" sub="A quick guide to every part of this page">
         <div className="col">
           {items.map(([t, d], i) => <Card key={t} className="pad-sm flat" style={{ animation: `pop .5s ${i * 0.05}s var(--spring) both` }}><b>{t}</b><p className="muted small">{d}</p></Card>)}
-          <Button onClick={() => setPanel('tour')}>🎬 Replay welcome tour</Button>
+          <Button onClick={() => setPanel('tour')}><Icon name="play" size={16} /> Replay welcome tour</Button>
         </div>
       </Sheet>
       <Sheet open={panel === 'glossary'} onClose={() => setPanel(null)} title="Glossary" sub="Plain-English meanings">

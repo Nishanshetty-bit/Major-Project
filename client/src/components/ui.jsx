@@ -1,8 +1,9 @@
-import { useRef, useState, useEffect, useLayoutEffect, useId } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect, useId, forwardRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '../hooks/index.js'
 import { useApp } from '../state/AppContext.jsx'
+import { Icon } from './Icon.jsx'
 
 /** Glass card with mouse-follow spotlight */
 export function Card({ children, className = '', lift = false, onClick, style, as: Tag = 'div', accent, selected, ...rest }) {
@@ -37,6 +38,16 @@ export function Reveal({ children, delay = 0, className = '', style }) {
   const [ref, seen] = useInView()
   return <div ref={ref} className={`reveal ${seen ? 'in' : ''} ${className}`} style={{ '--d': `${delay}s`, ...style }}>{children}</div>
 }
+
+export const ScrollSection = forwardRef(function ScrollSection({ children, className = '', style }, forwardedRef) {
+  const [ref, seen] = useInView()
+  const setRef = (node) => {
+    ref.current = node
+    if (typeof forwardedRef === 'function') forwardedRef(node)
+    else if (forwardedRef) forwardedRef.current = node
+  }
+  return <section ref={setRef} style={style} className={`sec reveal ${seen ? 'in' : ''} ${className}`}>{children}</section>
+})
 
 export function SectionHead({ eyebrow, title, sub, center }) {
   return (
@@ -113,7 +124,7 @@ export function Sheet({ open, onClose, title, sub, children, width }) {
           <motion.aside className="sheet" style={width ? { width } : undefined} role="dialog" aria-label={title} initial={{ x: '110%' }} animate={{ x: 0 }} exit={{ x: '110%' }} transition={{ type: 'spring', stiffness: 260, damping: 30 }}>
             <div className="sheet-head">
               <div><h3 style={{ fontSize: 22, fontWeight: 800 }}>{title}</h3>{sub && <p className="muted small" style={{ marginTop: 3 }}>{sub}</p>}</div>
-              <Button size="icon" className="icon" onClick={onClose} aria-label="Close">✕</Button>
+              <Button size="icon" className="icon" onClick={onClose} aria-label="Close"><Icon name="close" /></Button>
             </div>
             <div className="sheet-body">{children}</div>
           </motion.aside>
@@ -156,7 +167,7 @@ export function ErrorBox({ error, onRetry }) {
   if (!error) return null
   return (
     <Card className="pad offline">
-      <div className="bold">{error.offline ? '🔌 The backend server is not running' : '⚠️ Something went wrong'}</div>
+      <div className="bold"><Icon name="warning" size={16} /> {error.offline ? 'The backend server is not running' : 'Something went wrong'}</div>
       <p className="small" style={{ marginTop: 6 }}>{error.offline ? <>Open a second terminal and run <code>cd server && npm install && npm start</code> (port 5000). Then press retry.</> : error.message}</p>
       {onRetry && <Button size="sm" className="sm" style={{ marginTop: 10 }} onClick={onRetry}>↻ Retry</Button>}
     </Card>
@@ -175,4 +186,4 @@ export function Confetti({ fire }) {
   return createPortal(<>{bits.map((b) => <i key={b.i} className="confetti" style={{ left: `${b.left}vw`, background: b.c, animationDuration: `${b.dur}s`, animationDelay: `${b.delay}s` }} />)}</>, document.body)
 }
 
-export const Empty = ({ emoji = '🫧', title, text }) => <div className="center col" style={{ padding: 30, alignItems: 'center' }}><div style={{ fontSize: 40 }}>{emoji}</div><b>{title}</b><p className="muted small">{text}</p></div>
+export const Empty = ({ emoji = 'spark', title, text }) => <div className="center col" style={{ padding: 30, alignItems: 'center' }}><div style={{ color: 'var(--gold)' }}><Icon name={emoji} size={36} /></div><b>{title}</b><p className="muted small">{text}</p></div>

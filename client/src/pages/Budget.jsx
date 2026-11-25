@@ -6,16 +6,17 @@ import { useApp } from '../state/AppContext.jsx'
 import { useApi } from '../hooks/index.js'
 import { Card, Button, Chip, Reveal, SectionHead, Segmented, InfoTip, Term, Sheet, Bar, ErrorBox, Loading, Confetti } from '../components/ui.jsx'
 import { LineChart, Legend, Donut, Ring, Count, scoreColor, riskColor, Spark } from '../components/charts.jsx'
+import { Icon, TYPE_ICON } from '../components/Icon.jsx'
 
 const AMOUNTS = [5000, 10000, 25000, 50000, 100000, 500000]
-const RISKS = [{ v: 'low', e: '🛡️', t: 'Cautious', d: 'Smaller swings. Max 30% in one holding. No speculative picks.' }, { v: 'medium', e: '⚖️', t: 'Balanced', d: 'A mix of steady and growth assets. Max 35% in one holding.' }, { v: 'high', e: '🚀', t: 'Adventurous', d: 'Accepts bigger swings for growth. Up to 40% per holding and a small speculative slice.' }]
+const RISKS = [{ v: 'low', e: 'shield', t: 'Cautious', d: 'Smaller swings. Max 30% in one holding. No speculative picks.' }, { v: 'medium', e: 'scale', t: 'Balanced', d: 'A mix of steady and growth assets. Max 35% in one holding.' }, { v: 'high', e: 'chart', t: 'Adventurous', d: 'Accepts bigger swings for growth. Up to 40% per holding and a small speculative slice.' }]
 
 function Analysing({ steps }) {
   const [i, setI] = useState(0)
   useEffect(() => { const t = setInterval(() => setI((x) => Math.min(x + 1, steps.length)), 330); return () => clearInterval(t) }, [steps.length])
   return (
     <Card className="pad-lg col" style={{ maxWidth: 520, margin: '30px auto' }}>
-      <div className="row"><div style={{ fontSize: 34, animation: 'spin 1.6s linear infinite' }}>⚙️</div><h3>Building your portfolio…</h3></div>
+      <div className="row"><div style={{ color: 'var(--gold)', animation: 'spin 1.6s linear infinite' }}><Icon name="settings" size={30} /></div><h3>Building your portfolio…</h3></div>
       {steps.map((s, k) => <motion.div key={k} initial={{ opacity: 0.3 }} animate={{ opacity: k <= i ? 1 : 0.3 }} className="row small"><span style={{ width: 22, height: 22, borderRadius: 11, display: 'grid', placeItems: 'center', background: k < i ? '#30d158' : 'rgba(120,120,140,.2)', color: '#fff', transition: 'all .4s var(--spring)', transform: k < i ? 'scale(1.1)' : 'none' }}>{k < i ? '✓' : ''}</span>{s}</motion.div>)}
     </Card>
   )
@@ -29,7 +30,7 @@ function AssetDrawer({ id, onClose }) {
       {!a ? <Loading /> : <div className="col">
         <p className="muted">{a.blurb}</p>
         <div className="row"><Ring value={a.confidence} size={74} color={scoreColor(a.confidence)} /><div><div className="bold">{a.verdict} · {a.confidence}/100 <InfoTip>{a.formula}. Open the bars below to see every ingredient.</InfoTip></div><div className="small muted">Performance {a.performance} · News {a.sentiment} ({a.sentimentLabel})</div></div></div>
-        {a.flags.length > 0 && <div className="col" style={{ gap: 6 }}>{a.flags.map((f) => <Chip key={f} tone="orange">⚠ {f}</Chip>)}</div>}
+        {a.flags.length > 0 && <div className="col" style={{ gap: 6 }}>{a.flags.map((f) => <Chip key={f} tone="orange"><Icon name="warning" size={14} /> {f}</Chip>)}</div>}
         <Card className="pad-sm flat"><LineChart key={a.id} series={[{ name: a.name, color: TYPE_META[a.type].color, values: a.history, fill: true }]} labels={a.labels} height={190} format={(v) => '₹' + Math.round(v)} animateKey={a.id} shaded={[{ from: 14, to: 16, label: '' }]} /></Card>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {[['1Y', pct(a.metrics.return1Y, 0)], ['3Y / yr', pct(a.metrics.cagr3Y, 1)], ['Swings', a.metrics.volatility + '%'], ['Worst fall', a.metrics.maxDrawdown + '%'], ['RSI', a.metrics.rsi], ['Profit years', a.metrics.consistency + '%']].map(([l, v]) => <Card key={l} className="pad-sm flat center"><div className="tiny muted">{l}</div><b className="num">{v}</b></Card>)}
@@ -55,7 +56,7 @@ function Projection({ res, amount }) {
         <Legend items={[{ name: 'Best period', color: '#30d158' }, { name: 'Typical (median)', color: '#0a84ff' }, { name: 'Worst period', color: '#ff453a' }, { name: `Your ${inr(amount)}`, color: '#999' }]} />
       </Card>
       <div className="grid g3">
-        {[['😬 Worst case', p.worst, '#ff453a'], ['🙂 Typical', p.median, '#0a84ff'], ['🤩 Best case', p.best, '#30d158']].map(([t, d, c]) => (
+        { [['Worst case', p.worst, '#ff453a'], ['Typical', p.median, '#a77a12'], ['Best case', p.best, '#39845d']].map(([t, d, c]) => (
           <Card key={t} className="pad col" style={{ borderTop: `4px solid ${c}` }}><b>{t}</b><div className="num" style={{ fontSize: 28, fontWeight: 800 }}><Count value={d.value} format={(v) => inr(v)} /></div><div className={`bold small ${d.gain >= 0 ? 'up' : 'down'}`}>{d.gain >= 0 ? '+' : ''}{inr(d.gain)} ({pct((d.multiple - 1) * 100, 1)})</div><div className="tiny muted">If you started in {d.start}</div></Card>
         ))}
       </div>
@@ -86,14 +87,14 @@ function Mistakes({ list }) {
   const worst = Math.min(...m.checkpoints.map((c) => c.wrong))
   return (
     <div className="col">
-      <div className="tabs">{list.map((x) => <Chip key={x.id} className={`pick ${x.id === id ? 'on' : ''}`} onClick={() => setId(x.id)}>{x.emoji} {x.title}</Chip>)}</div>
+      <div className="tabs">{list.map((x) => <Chip key={x.id} className={`pick ${x.id === id ? 'on' : ''}`} onClick={() => setId(x.id)}><Icon name={x.emoji} size={14} /> {x.title}</Chip>)}</div>
       <AnimatePresence mode="wait">
         <motion.div key={id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid g2" style={{ alignItems: 'start' }}>
           <Card className="pad col">
-            <div className="row between"><h3>{m.emoji} {m.title}</h3><Chip tone="red">{m.tag}</Chip></div>
+            <div className="row between"><h3><Icon name={m.emoji} size={18} /> {m.title}</h3><Chip tone="red">{m.tag}</Chip></div>
             {m.story.map((s, i) => <motion.div key={i} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 * i }} className="row" style={{ alignItems: 'flex-start' }}><span className="chip">{i + 1}</span><span className="muted">{s}</span></motion.div>)}
             <div className="glass pad-sm" style={{ background: 'rgba(255,69,58,.08)' }}><div className="tiny muted">Money lost along the way</div><div className="num down" style={{ fontSize: 32, fontWeight: 800 }}><Count value={Math.abs(m.loss)} format={(v) => '−' + inr(v)} /></div></div>
-            <Card className="pad-sm flat">💡 <b>Lesson:</b> <span className="muted">{m.lesson}</span></Card>
+            <Card className="pad-sm flat"><Icon name="bulb" size={16} /> <b>Lesson:</b> <span className="muted">{m.lesson}</span></Card>
           </Card>
           <Card className="pad col">
             <LineChart key={id} series={[{ name: m.wrongLabel, color: '#ff453a', values: m.wrongPath }, { name: m.rightLabel, color: '#0a84ff', values: m.rightPath }]} labels={labels} height={230} animateKey={id} />
@@ -119,9 +120,9 @@ function TimeMachine({ amount, labels }) {
   return (
     <Card className="pad col">
       <div className="row between wrap"><div><b style={{ fontSize: 18 }}>⏳ Time Machine</b><p className="muted small">Pick any asset and any month in the past. See what your {inr(amount)} would have become.</p></div>
-        <div className="row wrap"><Chip className="pick" onClick={() => preset('hypegreen', 32)}>🚀 HypeGreen at the peak</Chip><Chip className="pick" onClick={() => preset('quantsmall', 13)}>📉 Small-cap before crash</Chip><Chip className="pick" onClick={() => preset('nifty50idx', 5)}>🪞 Nifty, early</Chip></div></div>
+        <div className="row wrap"><Chip className="pick" onClick={() => preset('hypegreen', 32)}><Icon name="chart" size={14} /> HypeGreen at the peak</Chip><Chip className="pick" onClick={() => preset('quantsmall', 13)}><Icon name="warning" size={14} /> Small-cap before crash</Chip><Chip className="pick" onClick={() => preset('nifty50idx', 5)}><Icon name="index" size={14} /> Nifty, early</Chip></div></div>
       <div className="grid g2">
-        <div className="col"><label className="small bold">Asset</label><select className="input" value={aid} onChange={(e) => setAid(e.target.value)}>{assets?.map((a) => <option key={a.id} value={a.id}>{TYPE_META[a.type].emoji} {a.name}</option>)}</select></div>
+        <div className="col"><label className="small bold">Asset</label><select className="input" value={aid} onChange={(e) => setAid(e.target.value)}>{assets?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
         <div className="col"><label className="small bold">Buy in: <span style={{ color: 'var(--blue)' }}>{labels[month]}</span></label><input type="range" min="0" max="59" value={month} style={{ '--p': `${(month / 59) * 100}%` }} onChange={(e) => setMonth(+e.target.value)} aria-label="Month to invest" /></div>
       </div>
       {r && <div className="grid g2" style={{ alignItems: 'center' }}>
@@ -220,12 +221,12 @@ export default function Budget() {
         <input type="range" min="5000" max="1000000" step="5000" value={amount} style={{ '--p': `${((amount - 5000) / 995000) * 100}%` }} onChange={(e) => setAmount(+e.target.value)} aria-label="Investment amount" />
         <div className="divider" />
         <div className="row between wrap"><b style={{ fontSize: 18 }}>2 · What kinds of investments?</b><span className="small muted">{types.length ? `${types.length} selected` : 'None selected = a mix of all four'}</span></div>
-        <div className="grid g4">{Object.entries(TYPE_META).map(([k, m]) => <Card key={k} lift onClick={() => toggle(k)} selected={types.includes(k)} accent={m.color} className="pad-sm row" role="checkbox" aria-checked={types.includes(k)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggle(k)}><span style={{ fontSize: 28 }}>{m.emoji}</span><div><b>{m.name}</b><div className="tiny muted">{types.includes(k) ? '✓ Included' : 'Tap to include'}</div></div></Card>)}</div>
+        <div className="grid g4">{Object.entries(TYPE_META).map(([k, m]) => <Card key={k} lift onClick={() => toggle(k)} selected={types.includes(k)} accent={m.color} className="pad-sm row" role="checkbox" aria-checked={types.includes(k)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggle(k)}><Icon name={TYPE_ICON[k]} size={24} /><div><b>{m.name}</b><div className="tiny muted">{types.includes(k) ? 'Included' : 'Tap to include'}</div></div></Card>)}</div>
         <div className="divider" />
         <b style={{ fontSize: 18 }}>3 · How do you handle ups and downs?</b>
-        <div className="grid g3">{RISKS.map((r) => <Card key={r.v} lift onClick={() => setRisk(r.v)} selected={risk === r.v} className="pad-sm"><div className="row"><span style={{ fontSize: 28 }}>{r.e}</span><b>{r.t}</b>{profile?.suggestedRisk === r.v && <Chip tone="purple">Suggested for you</Chip>}</div><p className="tiny muted" style={{ marginTop: 4 }}>{r.d}</p></Card>)}</div>
-        {!profile && <p className="tiny muted">💡 Tip: take the <button className="chip pick" onClick={() => nav('/behaviour')}>behaviour test</button> and we will suggest the right risk style for you.</p>}
-        <Button variant="primary" size="lg" onClick={build} disabled={busy}>{busy ? 'Working…' : '✨ Build my portfolio'}</Button>
+        <div className="grid g3">{RISKS.map((r) => <Card key={r.v} lift onClick={() => setRisk(r.v)} selected={risk === r.v} className="pad-sm"><div className="row"><Icon name={r.e} size={24} /><b>{r.t}</b>{profile?.suggestedRisk === r.v && <Chip tone="purple">Suggested for you</Chip>}</div><p className="tiny muted" style={{ marginTop: 4 }}>{r.d}</p></Card>)}</div>
+        {!profile && <p className="tiny muted"><Icon name="bulb" size={14} /> Tip: take the <button className="chip pick" onClick={() => nav('/behaviour')}>behaviour test</button> and we will suggest the right risk style for you.</p>}
+        <Button variant="primary" size="lg" onClick={build} disabled={busy}>{busy ? 'Working…' : <><Icon name="spark" size={16} /> Build my portfolio</>}</Button>
       </Card>
 
       <RealPortfolioPanel amount={amount} risk={risk} />
@@ -241,7 +242,7 @@ export default function Budget() {
             <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', alignItems: 'start' }}>
               <Card className="pad col" style={{ alignItems: 'center' }}>
                 <Donut slices={slices} active={hover} onSelect={(id) => { setHover(id); setOpen(id) }} center={<div><div className="tiny muted">Holdings</div><div className="xl">{res.holdings.length}</div><div className="tiny muted">Spread score {res.diversificationScore}/100</div></div>} />
-                <div className="row wrap center">{Object.entries(res.typeMix).filter(([, v]) => v).map(([k, v]) => <Chip key={k}>{TYPE_META[k].emoji} {v}%</Chip>)}</div>
+                <div className="row wrap center">{Object.entries(res.typeMix).filter(([, v]) => v).map(([k, v]) => <Chip key={k}><Icon name={TYPE_ICON[k]} size={14} /> {v}%</Chip>)}</div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', width: '100%', gap: 8 }}>
                   {[['Invested', inr(res.invested)], ['Cash left', inr(res.cashLeft)], ['Typical swings', res.stats.volatility + '%']].map(([l, v]) => <Card key={l} className="pad-sm flat center"><div className="tiny muted">{l}</div><b className="num small">{v}</b></Card>)}
                 </div>
@@ -253,7 +254,7 @@ export default function Budget() {
                     <Card lift onClick={() => setOpen(h.id)} onMouseEnter={() => setHover(h.id)} onMouseLeave={() => setHover(null)} className="pad-sm" style={{ borderLeft: `6px solid ${colorOf(h.id)}` }}>
                       <div className="row"><Ring value={h.confidence} size={52} color={scoreColor(h.confidence)} />
                         <div style={{ flex: 1, minWidth: 0 }}><div className="row between"><b>{h.name}</b><b className="num">{h.pct}%</b></div>
-                          <div className="row wrap" style={{ gap: 6, margin: '2px 0' }}><Chip>{TYPE_META[h.type].emoji} {TYPE_META[h.type].short}</Chip><Chip tone={h.risk === 'High' ? 'red' : h.risk === 'Medium' ? 'orange' : 'green'}>{h.risk} risk</Chip><Chip tone={h.sentiment === 'Positive' ? 'green' : h.sentiment === 'Negative' ? 'red' : ''}>News: {h.sentiment}</Chip></div>
+                          <div className="row wrap" style={{ gap: 6, margin: '2px 0' }}><Chip><Icon name={TYPE_ICON[h.type]} size={14} /> {TYPE_META[h.type].short}</Chip><Chip tone={h.risk === 'High' ? 'red' : h.risk === 'Medium' ? 'orange' : 'green'}>{h.risk} risk</Chip><Chip tone={h.sentiment === 'Positive' ? 'green' : h.sentiment === 'Negative' ? 'red' : ''}>News: {h.sentiment}</Chip></div>
                           <div className="small muted">{inr(h.amount)} · {h.units} {h.unit} @ ₹{h.price}</div></div></div>
                       <p className="tiny muted" style={{ marginTop: 6 }}>{h.why}</p>
                     </Card>
@@ -262,8 +263,8 @@ export default function Budget() {
               </div>
             </div>
             <Card className="pad col" style={{ marginTop: 16 }}>
-              <details className="faq"><summary>🔍 How was this plan built?</summary><ol className="muted small" style={{ paddingLeft: 20, marginTop: 6 }}>{res.method.map((m) => <li key={m}>{m}</li>)}</ol></details>
-              {res.excluded.length > 0 && <details className="faq"><summary>🚫 What we left out ({res.excluded.length}) and why</summary><div className="col" style={{ marginTop: 8 }}>{res.excluded.map((e) => <div key={e.id} className="small"><b>{e.name}:</b> <span className="muted">{e.reason}</span></div>)}</div></details>}
+              <details className="faq"><summary>How was this plan built?</summary><ol className="muted small" style={{ paddingLeft: 20, marginTop: 6 }}>{res.method.map((m) => <li key={m}>{m}</li>)}</ol></details>
+              {res.excluded.length > 0 && <details className="faq"><summary>What we left out ({res.excluded.length}) and why</summary><div className="col" style={{ marginTop: 8 }}>{res.excluded.map((e) => <div key={e.id} className="small"><b>{e.name}:</b> <span className="muted">{e.reason}</span></div>)}</div></details>}
             </Card>
           </section>
 
@@ -290,7 +291,7 @@ export default function Budget() {
           <section className="sec center col" style={{ alignItems: 'center' }}>
             <h2 className="h-section">Plans are easy. Sticking to them is hard.</h2>
             <p className="muted" style={{ maxWidth: 540 }}>Find out how you behave when the crash arrives and the alerts start buzzing.</p>
-            <Button variant="primary" size="lg" onClick={() => nav('/behaviour')}>🧠 Take the behaviour test →</Button>
+            <Button variant="primary" size="lg" onClick={() => nav('/behaviour')}><Icon name="brain" size={17} /> Take the behaviour test →</Button>
           </section>
         </div>
       )}

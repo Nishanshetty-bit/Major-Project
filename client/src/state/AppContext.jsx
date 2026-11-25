@@ -3,7 +3,7 @@ import { api } from '../lib/api.js'
 
 const Ctx = createContext(null)
 const KEY = 'bfs-state-v2'
-const initial = { assetType: null, profile: null, budget: { amount: 50000, types: [], risk: 'medium' }, done: {}, tourSeen: false }
+const initial = { assetType: null, profile: null, budget: { amount: 50000, types: [], risk: 'medium' }, done: {}, tourSeen: false, theme: 'light' }
 const load = () => { try { return { ...initial, ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch { return initial } }
 
 export function AppProvider({ children }) {
@@ -19,6 +19,7 @@ export function AppProvider({ children }) {
     setAssetType: (assetType) => setS((p) => ({ ...p, assetType })),
     setProfile: (profile) => setS((p) => ({ ...p, profile })),
     setBudget: (b) => setS((p) => ({ ...p, budget: { ...p.budget, ...b } })),
+    setTheme: (theme) => setS((p) => ({ ...p, theme })),
     markDone: (k) => setS((p) => (p.done[k] ? p : { ...p, done: { ...p.done, [k]: true } })),
     seeTour: () => setS((p) => ({ ...p, tourSeen: true })),
     reset: () => setS(initial),

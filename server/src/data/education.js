@@ -1,7 +1,7 @@
 // Beginner-friendly explanations for the four investment types, served by the API so the UI stays data-driven.
 export const EDUCATION = {
   stock: {
-    id: 'stock', title: 'Individual Stocks', emoji: '🏢', color: '#FF453A', tagline: 'Own a tiny slice of one company',
+    id: 'stock', title: 'Individual Stocks', emoji: '🏢', color: '#A77A12', tagline: 'Own a tiny slice of one company',
     analogy: 'Like buying one brick of a shop. If the shop does well, your brick is worth more.',
     risk: 5, cost: 2, effort: 5, diversification: 1, liquidity: 5, minAmount: 'Price of 1 share (₹500 – ₹5,000)', bestFor: 'People who like researching companies and can accept big swings',
     how: [
@@ -24,7 +24,7 @@ export const EDUCATION = {
     example: { name: 'Infosys', line: 'Buy 10 shares at ₹1,500 = ₹15,000. If price rises to ₹1,800 you gain ₹3,000.' },
   },
   mf: {
-    id: 'mf', title: 'Mutual Funds', emoji: '🧺', color: '#0A84FF', tagline: 'Pool money, let an expert invest it',
+    id: 'mf', title: 'Mutual Funds', emoji: '🧺', color: '#827A67', tagline: 'Pool money, let an expert invest it',
     analogy: 'Like a group trip where everyone puts money in and one experienced guide plans everything.',
     risk: 3, cost: 3, effort: 2, diversification: 4, liquidity: 4, minAmount: '₹500 SIP or ₹1,000 lump sum', bestFor: 'People who want expert management without picking stocks themselves',
     how: [
@@ -47,7 +47,7 @@ export const EDUCATION = {
     example: { name: 'Parag Parikh Flexi Cap', line: 'SIP of ₹5,000 per month buys ~60 units each month at a NAV near ₹82.' },
   },
   index: {
-    id: 'index', title: 'Index Funds', emoji: '🪞', color: '#30D158', tagline: 'Automatically copy the whole market',
+    id: 'index', title: 'Index Funds', emoji: '🪞', color: '#B4994D', tagline: 'Automatically copy the whole market',
     analogy: 'Instead of picking the best player, you buy a ticket for the entire team.',
     risk: 2, cost: 1, effort: 1, diversification: 5, liquidity: 4, minAmount: '₹100 – ₹500 SIP', bestFor: 'Beginners and long-term investors who want simple, cheap and boring',
     how: [
@@ -70,7 +70,7 @@ export const EDUCATION = {
     example: { name: 'Nippon Nifty 50 Index Fund', line: '₹5,000 a month for 10 years in a market growing ~12% a year can grow to roughly ₹11.6 lakh.' },
   },
   etf: {
-    id: 'etf', title: 'ETFs', emoji: '⚡', color: '#FF9F0A', tagline: 'An index fund you trade like a stock',
+    id: 'etf', title: 'ETFs', emoji: '⚡', color: '#C4A447', tagline: 'An index fund you trade like a stock',
     analogy: 'Like a ready-made gift basket you can buy or sell any minute at a shop counter.',
     risk: 2, cost: 1, effort: 2, diversification: 5, liquidity: 5, minAmount: 'Price of 1 unit (₹50 – ₹500)', bestFor: 'People who want index-style investing with live prices and instant trading',
     how: [
