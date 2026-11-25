@@ -1,0 +1,29 @@
+{
+  "source": "xxparthparekhxx/indian-stock-market-minute-data",
+  "subset": "day",
+  "createdAt": "2026-11-25T06:49:38.770978+00:00",
+  "rows": 7969510,
+  "symbols": 3182,
+  "firstISTDate": "2000-01-01",
+  "lastISTDate": "2026-11-13",
+  "negativeVolumeRows": 1,
+  "zeroVolumeRows": 507541,
+  "invalidPriceRows": 928,
+  "invalidOhlcRows": 2486,
+  "duplicateSymbolTimestampRows": 0,
+  "symbolMetadataRows": 3182,
+  "exchangeSeriesDistribution": {
+    "EQ": 2763,
+    "BE": 201,
+    "INDEX": 135,
+    "BZ": 42,
+    "nan": 41
+  },
+  "listedStatusDistribution": {
+    "yes": 3141,
+    "no": 41
+  },
+  "adjustmentsCsvRows": 61,
+  "calendarSessions": 6683,
+  "interpretation": "The source is split/bonus adjusted but not dividend adjusted; zero volume is retained; invalid rows are flagged and this dataset is not merged into the TejHQ processed data."
+}

@@ -1,0 +1,25 @@
+{
+  "createdAt": "2026-11-25T07:25:11.391591+00:00",
+  "source": "NSE published Equity, ETF, REIT and InvIT CSV masters",
+  "masterUrls": {
+    "equity": "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+    "etf": "https://nsearchives.nseindia.com/content/equities/eq_etfseclist.csv",
+    "reit": "https://nsearchives.nseindia.com/content/equities/REITS_L.csv",
+    "invit": "https://nsearchives.nseindia.com/content/equities/INVITS_L.csv"
+  },
+  "historicalRows": 7377964,
+  "distinctSymbolSeriesIsin": 7759,
+  "classificationCounts": {
+    "etf/high": 411,
+    "listed_equity_candidate/high": 2417,
+    "other_or_restricted/medium": 686,
+    "unknown_historical_or_unmatched/low": 4245
+  },
+  "eligibleOrdinaryEquityCandidateCount": 2417,
+  "eligibleUniverse": "C:\\Users\\Nishan Shetty\\OneDrive\\Desktop\\behavioral-finance-fullstack-v2 (1)\\ml\\data\\processed\\indian\\eligible_nse_equities.csv",
+  "classificationPolicy": "Require an exact current NSE symbol+series match, EQ series, matching ISIN beginning INE, and absence from NSE ETF/REIT/InvIT lists. Do not infer from names. Non-matches remain unknown.",
+  "limitations": [
+    "Current security masters do not reconstruct delisted security status through all historical dates.",
+    "EQ series and matching ISIN plus exclusion lists are a conservative candidate screen, not a legal instrument opinion; ambiguous securities remain outside the eligible universe."
+  ]
+}

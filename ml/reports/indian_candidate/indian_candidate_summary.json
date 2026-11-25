@@ -1,0 +1,48 @@
+{
+  "classificationReport": "C:\\Users\\Nishan Shetty\\OneDrive\\Desktop\\behavioral-finance-fullstack-v2 (1)\\ml\\reports\\indian\\instrument_classification.json",
+  "eligibleSymbols": 2417,
+  "eligibleRows": 4182723,
+  "candidateData": "C:\\Users\\Nishan Shetty\\OneDrive\\Desktop\\behavioral-finance-fullstack-v2 (1)\\ml\\data\\processed\\indian\\nse_eligible_equities.parquet",
+  "classificationSnapshot": "2026-11-25T07:25:11.391591+00:00",
+  "productionActivation": false,
+  "model": "logistic_regression",
+  "trainingFeatures": [
+    "return_1d",
+    "return_5d",
+    "return_10d",
+    "return_20d",
+    "sma_50",
+    "sma_200",
+    "rsi_14",
+    "macd",
+    "macd_signal",
+    "volatility_20",
+    "volume_change",
+    "volume_sma_20",
+    "high_low_range",
+    "distance_sma_50",
+    "distance_sma_200"
+  ],
+  "activationRecommendation": "do_not_activate",
+  "reason": "Final holdout discrimination is near chance and uncalibrated Brier score is worse than the constant-prevalence baseline for both horizons.",
+  "finalHoldout": {
+    "5": {
+      "rocAuc": 0.5109071594844322,
+      "prAuc": 0.4622248187634188,
+      "positivePrevalenceBaselinePrAuc": 0.45250196456840064,
+      "brierScore": 0.25017538912668874,
+      "constantPrevalenceBaselineBrierScore": 0.24774393663013852,
+      "sigmoidCalibrationSelectedOnValidation": true,
+      "holdoutSigmoidBrierScore": 0.2508339768109255
+    },
+    "20": {
+      "rocAuc": 0.48852530977807723,
+      "prAuc": 0.4339042478738441,
+      "positivePrevalenceBaselinePrAuc": 0.4392065211794365,
+      "brierScore": 0.2510826543868214,
+      "constantPrevalenceBaselineBrierScore": 0.2463041529328937,
+      "sigmoidCalibrationSelectedOnValidation": true,
+      "holdoutSigmoidBrierScore": 0.2564345307941072
+    }
+  }
+}

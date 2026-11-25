@@ -12,6 +12,7 @@ import { fetchNews, providerStatus } from '../services/realNews.js'
 import { bad, num, oneOf, wrap, HttpError } from '../middleware/index.js'
 import { marketDataStatus } from '../services/dataSource.js'
 import { mlHealth, mlRequest, mlGet } from '../services/mlClient.js'
+import { getIndianQuote } from '../services/indianMarket.js'
 
 const r = Router()
 const TYPE_ALIAS = { stocks: 'stock', stock: 'stock', mf: 'mf', mutual: 'mf', index: 'index', etf: 'etf' }
@@ -37,6 +38,7 @@ r.get('/assets/:id', wrap((req, res) => {
 }))
 r.post('/sentiment', wrap((req, res) => { if (typeof req.body.text !== 'string' || !req.body.text.trim()) throw bad('text is required'); res.json(sentiment(req.body.text.slice(0, 500))) }))
 r.get('/ml/health', async (req, res) => res.json(await mlHealth()))
+r.get('/market/quote', async (req, res) => res.json(await getIndianQuote(req.query.symbol, { exchange: req.query.exchange || 'NSE' })))
 r.get('/ml/market/assets', async (req, res) => res.json(await mlGet('/ml/market/assets')))
 r.get('/ml/market/assets/:symbol/history', async (req, res) => res.json(await mlGet(`/ml/market/assets/${encodeURIComponent(req.params.symbol)}/history`)))
 r.post('/ml/predict/returns', async (req, res) => res.json(await mlRequest('/ml/predict/returns', req.body)))

@@ -38,6 +38,20 @@ Tests: `npm test` (7 API tests) Â· with the server running: `cd client && npm 
 
 The `ml/` directory contains reproducible dataset scripts, validation reports, a FastAPI service, and explicit model availability checks. Raw and processed data are gitignored. The downloader inspects Hugging Face configurations and splits instead of assuming a schema; preprocessing refuses incompatible schemas rather than fabricating data.
 
+### Indian market source audit (new, not yet the serving dataset)
+
+The TejHQ NSE daily tree and its separate `prices_adjusted`, `actions`, `symbol_history` and point-in-time `universe` trees are downloaded under `ml/data/raw/tejhq/`. The processed candidate is `ml/data/processed/indian/nse_eod.parquet`; its raw OHLCV and TejHQ split/bonus/dividend-adjusted close remain separate. It contains 7,377,964 rows across 4,441 symbols from 2010-01-04 through 2026-11-23. The quality report is `ml/data/processed/indian/data_quality_report.json`.
+
+Upstox daily data plus `symbols.csv`, `calendar.csv` and `adjustments.csv` are preserved under `ml/data/raw/upstox/` for validation. Its `type` field is an NSE series (`EQ`/`BE`/`BZ`/`INDEX`), not an asset-class label. The TejHQ NSE candidate is therefore kept separate from the existing serving parquet until asset classification, the multi-source comparison, model retraining and application integration are complete. No Kaggle mutual-fund or supplementary EOD files were downloaded because Kaggle credentials are not configured in this environment.
+
+Reproduce the downloaded data and candidate build with:
+
+```bash
+python ml/scripts/download_tejhq_data.py
+python ml/scripts/download_upstox_daily.py
+python ml/scripts/build_tejhq_market_duckdb.py
+```
+
 ```bash
 cd ml
 pip install -r requirements.txt
@@ -76,6 +90,14 @@ Financial PhraseBank and FIQA are evaluated separately. Their mappings are Phras
 The API exposes `dataSource.mode` as `simulated` for the legacy Node universe. Real portfolio endpoints read `ml/data/processed/market.parquet` directly through FastAPI and return `dataMode: real`, source, price field and latest observation date. The two modes are never silently mixed. Behavioural and subjective-regret models remain experimental until defensible labelled data exists; the existing rule-based experience is the operational baseline.
 
 The additive ML endpoints are `GET /api/ml/health`, `GET /api/ml/market/assets`, `GET /api/ml/market/assets/:symbol/history`, `POST /api/ml/predict/returns`, `POST /api/ml/sentiment/analyze`, `GET /api/ml/portfolio/assets`, `POST /api/ml/portfolio/optimize`, `POST /api/ml/portfolio/backtest`, `POST /api/ml/portfolio/compare`, `POST /api/ml/portfolio/risk-metrics`, `POST /api/ml/behavior/predict`, and `POST /api/ml/intervention/predict`. The Node service applies timeouts and returns explicit unavailable responses when FastAPI is down.
+
+## Indian NSE data candidate and external quotes
+
+The Indian source audit uses TejHQ NSE EOD files with raw OHLCV and documented adjusted close. Download/build via `python ml/scripts/download_tejhq_data.py` and `python ml/scripts/build_tejhq_market_duckdb.py`. NSE's current equity, ETF, REIT and InvIT masters are downloaded by `python ml/scripts/classify_indian_instruments.py`; exact symbol, series and ISIN matching is required, and unknown/delisted history remains excluded. The generated universe is `ml/data/processed/indian/eligible_nse_equities.csv`; counts and policy are in `ml/reports/indian/instrument_classification.json`.
+
+Run `python ml/scripts/train_indian_candidate.py` to filter the classified rows and reuse the purged walk-forward validation, final holdout, calibration, per-symbol metrics and volatility-regime report. The current full candidate has 4,182,723 rows from 2,417 symbols (2010-01-04 to 2026-11-23). It uses the existing 15 features and logistic regression to keep the full cross-section trainable on a workstation. Its untouched holdout ROC AUC is 0.511 for 5-day and 0.489 for 20-day returns; uncalibrated Brier scores are worse than constant-prevalence baselines, so the summary recommends against activation. Candidate artifacts go only to `ml/models/indian_candidate/` and `ml/reports/indian_candidate/`. This does not change production model paths or serving behavior.
+
+The independent NSE quote panel calls `GET /api/market/quote?symbol=RELIANCE` through Express. Configure `INDIAN_STOCK_API_BASE_URL` with an accessible deployment of [0xramm/Indian-Stock-Market-API](https://github.com/0xramm/Indian-Stock-Market-API). That project fetches Yahoo Finance data; the quote path labels fetched, cached, stale and unavailable states and does not call a quote exchange-verified real-time feed. Without a configured provider URL it reports unavailable. Quotes are display-only and never enter historical ML.
 
 ## Real portfolio methodology
 
