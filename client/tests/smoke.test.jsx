@@ -22,22 +22,30 @@ test('home: lessons for all four types render', async () => {
   for (const name of ['Individual Stocks', 'Mutual Funds', 'Index Funds', 'ETFs']) {
     fireEvent.click(await screen.findByLabelText(`Learn about ${name}`))
     await screen.findByText(/Think of it like this/)
+    expect(document.querySelectorAll('.how-step-icon').length).toBe(4)
     for (const tab of ['How to invest', 'Try it', 'Pros & cons', 'FAQ', 'How it works']) fireEvent.click(screen.getByText(new RegExp(tab)))
   }
   fireEvent.click(await screen.findByText(/Try it/))
   await screen.findByText(/Crash a company/)
 })
 test('budget: builds a plan with projections and mistakes', async () => {
+  localStorage.setItem('bfs-state-v2', JSON.stringify({ tourSeen: true, theme: 'dark' }))
   go('/budget')
+  expect(screen.queryByRole('heading', { name: 'Portfolio optimizer' })).toBeNull()
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Investment amount' }), { target: { value: '12345' } })
   fireEvent.click(await screen.findByText(/Build my portfolio/))
+  await screen.findByRole('heading', { name: /Balanced portfolio of ₹12,345/ }, { timeout: 8000 })
   await screen.findByText(/What if you choose wrong/, {}, { timeout: 8000 })
   await screen.findByText(/Time Machine/)
+  expect(document.documentElement.dataset.theme).toBe('dark')
+  expect(document.querySelector('svg[aria-label="Line chart"] text').getAttribute('fill')).toBe('var(--chart-label)')
   fireEvent.click(screen.getByText('3 years'))
   fireEvent.click(screen.getByText(/Chasing last year/))
 })
 test('behaviour: full test to fingerprint', async () => {
   go('/behaviour')
-  fireEvent.click(await screen.findByText(/Calm practice/))
+  await screen.findByText(/Which type of investment should the test use/)
+  expect(screen.queryByText(/Pressure level/)).toBeNull()
   fireEvent.click(screen.getByText(/Begin the test/))
   for (let i = 0; i < 10; i++) {
     await waitFor(() => expect(document.querySelectorAll('.opt').length).toBe(3), { timeout: 5000 })
@@ -45,6 +53,22 @@ test('behaviour: full test to fingerprint', async () => {
     fireEvent.click(await screen.findByText(i === 9 ? /See my fingerprint/ : /Next scenario/))
   }
   await screen.findByText(/Your behavioural fingerprint/, {}, { timeout: 8000 })
+})
+test('homepage omits removed sections and tutorial continues to budget', async () => {
+  go('/')
+  await screen.findByLabelText('Learn about Individual Stocks')
+  expect(screen.queryByText("The simulated market's story")).toBeNull()
+  expect(screen.queryByText('Ready for the next step?')).toBeNull()
+  expect(screen.queryByLabelText('Your journey')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Tutorial' }))
+  fireEvent.click(await screen.findByLabelText('Learn about Individual Stocks'))
+  fireEvent.click(screen.getByRole('tab', { name: 'How to invest' }))
+  const compare = document.querySelector('[data-tutorial="compare-section"]')
+  compare.getBoundingClientRect = () => ({ top: 0, bottom: 100, left: 0, right: 100, width: 100, height: 100 })
+  fireEvent.scroll(window)
+  await screen.findByText('You reached the comparison. Click a column heading to open that lesson.')
+  fireEvent.click(screen.getByText('Finish tutorial and open Budget →'))
+  await waitFor(() => expect(window.location.pathname).toBe('/budget'))
 })
 test('pre-decision: check, nudge, outcome', async () => {
   go('/pre-decision')
@@ -90,6 +114,31 @@ test('navbar stock search: search provider symbols and display selected quote', 
     fireEvent.change(screen.getByRole('textbox', { name: 'Ask FinSense AI' }), { target: { value: 'What does this price change mean?' } })
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
     await screen.findAllByText('The latest quote shows a small day-over-day increase; it is not a forecast.')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+test('stock details show a quote summary when Groq is unavailable', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = vi.fn(async (url) => {
+    if (url.endsWith('/api/education')) return { ok: true, json: async () => ({ status: 'ok', types: [], compare: [] }) }
+    if (url.endsWith('/api/glossary')) return { ok: true, json: async () => ({}) }
+    if (url.includes('/api/ai/chat')) return { ok: false, status: 502, json: async () => ({ error: 'Groq is temporarily unavailable. Please try again.' }) }
+    if (url.includes('/market/stocks')) return { ok: true, json: async () => ({ status: 'ok', symbols: [{ symbol: 'INFY', companyName: 'Infosys Limited' }] }) }
+    return { ok: true, json: async () => ({ status: 'ok', symbol: 'INFY', lastPrice: 2500.5, change: 20.25, changePercent: 0.81, previousClose: 2480.25, open: 2490, dayHigh: 2510, dayLow: 2480, yearHigh: 2600, yearLow: 1400, volume: 5000, marketCap: 1000000, currency: 'INR', fetchedAt: '2026-11-25T10:00:00.000Z', provider: 'Test provider' }) }
+  })
+  try {
+    go('/')
+    fireEvent.click(await screen.findByRole('button', { name: 'Open stock search' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'View quote' }))
+    await screen.findByText(/Quote-only snapshot for Infosys Limited/)
+    fireEvent.click(await screen.findByRole('button', { name: 'Chat about this stock' }))
+    await screen.findByText(/Groq is temporarily unavailable, so here is a quote-only snapshot/)
+    await screen.findByText(/₹2,500\.50/)
+    fireEvent.change(screen.getByRole('textbox', { name: 'Ask FinSense AI' }), { target: { value: 'what is this' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
+    await screen.findByRole('alert')
+    expect(screen.getByRole('textbox', { name: 'Ask FinSense AI' }).value).toBe('what is this')
   } finally {
     globalThis.fetch = originalFetch
   }

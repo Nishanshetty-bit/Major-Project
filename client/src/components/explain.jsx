@@ -8,6 +8,12 @@ import { Icon } from './Icon.jsx'
 
 /* ───────────── Animated money-flow scenes ───────────── */
 const line = (...p) => p.map((q, i) => `${i ? 'L' : 'M'}${q[0]} ${q[1]}`).join(' ')
+const HOW_STEP_ICONS = {
+  stock: ['people', 'coin', 'chart', 'wallet'],
+  mf: ['people', 'basket', 'building', 'chart'],
+  index: ['book', 'index', 'basket', 'coin'],
+  etf: ['basket', 'building', 'chart', 'spark'],
+}
 const SCENES = {
   stock: {
     nodes: [{ id: 'you', x: 60, y: 150, e: 'people', l: 'You', on: [0, 1, 3] }, { id: 'broker', x: 200, y: 150, e: 'phone', l: 'Broker app', on: [1] }, { id: 'exch', x: 340, y: 150, e: 'building', l: 'Stock exchange', on: [1, 3] }, { id: 'co', x: 510, y: 150, e: 'building', l: 'One company', on: [0, 1, 2, 3] }],
@@ -49,7 +55,7 @@ const SCENES = {
     cluster: { x: 535, y: 150, n: 7 }, ticker: [2],
   },
 }
-const Dash = ({ d }) => <path d={d} fill="none" stroke="rgba(60,60,90,.18)" strokeWidth="3" strokeDasharray="2 8" strokeLinecap="round" />
+const Dash = ({ d }) => <path d={d} fill="none" stroke="var(--ink3)" strokeWidth="3" strokeDasharray="2 8" strokeLinecap="round" />
 const Mover = ({ d, delay, kind }) => (
   <g opacity="0">
     <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.08;.9;1" dur="2.6s" begin={`${delay}s`} repeatCount="indefinite" />
@@ -74,13 +80,13 @@ export function FlowScene({ type, step }) {
       {sc.flows.map((f, i) => f.on.includes(step) && (f.kind === 'pick'
         ? <path key={`${step}-${i}`} d={f.d} fill="none" stroke="#0a84ff" strokeWidth="4" strokeDasharray="10 10" strokeLinecap="round"><animate attributeName="stroke-dashoffset" from="40" to="0" dur=".8s" repeatCount="indefinite" /></path>
         : <g key={`${step}-${i}`}>{[0, 0.85, 1.7].map((d) => <Mover key={d} d={f.d} delay={d} kind={f.kind} />)}</g>))}
-      {sc.bubbles && <g>{[[480, 60, 16], [520, 90, 22], [560, 60, 12], [490, 120, 14], [545, 135, 26], [500, 170, 20], [565, 185, 13], [520, 215, 17], [480, 235, 12], [560, 235, 15], [455, 195, 11], [455, 100, 10]].map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} fill={`hsl(${210 + i * 9} 85% ${62 + (i % 3) * 6}%)`} stroke="#fff" strokeWidth="2" style={{ animation: `pop .6s ${i * 0.05}s both`, opacity: step === 0 || step === 1 ? 1 : 0.55 }} />)}<text x="515" y="275" fontSize="11" fontWeight="700" textAnchor="middle" fill="rgba(17,24,39,.55)">50 companies (bigger = larger share)</text></g>}
-      {sc.cluster && <g>{Array.from({ length: sc.cluster.n }, (_, i) => <g key={i} transform={`translate(${sc.cluster.x - 30 + (i % 3) * 30},${sc.cluster.y - 60 + Math.floor(i / 3) * 42})`} style={{ animation: `pop .6s ${i * 0.06}s both`, opacity: step === 1 || step === 3 || step === 0 ? 1 : 0.6 }}><rect x="-11" y="-12" width="22" height="24" rx="5" fill="rgba(255,255,255,.9)" stroke="rgba(167,122,18,.4)" /><path d="m-7 6 4-5 3 2 6-8" fill="none" stroke="#a77a12" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></g>)}<text x={sc.cluster.x} y={sc.cluster.y + 100} fontSize="11" fontWeight="700" textAnchor="middle" fill="rgba(17,24,39,.55)">{type === 'mf' ? '30–60 companies' : '~50 companies'}</text></g>}
+      {sc.bubbles && <g>{[[480, 60, 16], [520, 90, 22], [560, 60, 12], [490, 120, 14], [545, 135, 26], [500, 170, 20], [565, 185, 13], [520, 215, 17], [480, 235, 12], [560, 235, 15], [455, 195, 11], [455, 100, 10]].map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} fill={`hsl(${210 + i * 9} 85% ${62 + (i % 3) * 6}%)`} stroke="#fff" strokeWidth="2" style={{ animation: `pop .6s ${i * 0.05}s both`, opacity: step === 0 || step === 1 ? 1 : 0.55 }} />)}<text x="515" y="275" fontSize="11" fontWeight="700" textAnchor="middle" fill="var(--ink2)">50 companies (bigger = larger share)</text></g>}
+      {sc.cluster && <g>{Array.from({ length: sc.cluster.n }, (_, i) => <g key={i} transform={`translate(${sc.cluster.x - 30 + (i % 3) * 30},${sc.cluster.y - 60 + Math.floor(i / 3) * 42})`} style={{ animation: `pop .6s ${i * 0.06}s both`, opacity: step === 1 || step === 3 || step === 0 ? 1 : 0.6 }}><rect x="-11" y="-12" width="22" height="24" rx="5" fill="rgba(255,255,255,.9)" stroke="rgba(167,122,18,.4)" /><path d="m-7 6 4-5 3 2 6-8" fill="none" stroke="#a77a12" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></g>)}<text x={sc.cluster.x} y={sc.cluster.y + 100} fontSize="11" fontWeight="700" textAnchor="middle" fill="var(--ink2)">{type === 'mf' ? '30–60 companies' : '~50 companies'}</text></g>}
       {sc.nodes.map((n) => { const on = n.on.includes(step); return (
         <g key={n.id} style={{ transformOrigin: `${n.x}px ${n.y}px`, transform: on ? 'scale(1.14)' : 'scale(.92)', opacity: on ? 1 : 0.5, transition: 'all .6s cubic-bezier(.34,1.56,.64,1)' }}>
           <circle cx={n.x} cy={n.y} r="32" fill="rgba(255,255,255,.85)" stroke={on ? '#0a84ff' : '#fff'} strokeWidth={on ? 3 : 1.5} style={{ filter: on ? 'drop-shadow(0 8px 14px rgba(10,132,255,.3))' : 'none' }} />
           <foreignObject x={n.x - 15} y={n.y - 15} width="30" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '30px', height: '30px', display: 'grid', placeItems: 'center', color: '#a77a12' }}><Icon name={n.e} size={25} /></div></foreignObject>
-          <text x={n.x} y={n.y + 52} fontSize="11.5" fontWeight="700" textAnchor="middle" fill="rgba(17,24,39,.7)">{n.l}</text>
+          <text x={n.x} y={n.y + 52} fontSize="11.5" fontWeight="700" textAnchor="middle" fill="var(--ink2)">{n.l}</text>
         </g>) })}
       {type === 'stock' && step === 2 && <PriceWiggle x={455} y={20} up={tick % 2 === 0} />}
       {type === 'etf' && sc.ticker.includes(step) && <g transform="translate(205,45)"><rect width="130" height="40" rx="14" fill="rgba(255,255,255,.9)" stroke="#fff" /><text x="14" y="25" fontSize="15" fontWeight="800" fill={tick % 2 ? '#30d158' : '#ff453a'}>₹{price} {tick % 2 ? '▲' : '▼'}</text><circle cx="116" cy="20" r="4" fill="#30d158" style={{ animation: 'blink 1s infinite' }} /></g>}
@@ -105,7 +111,7 @@ export function HowItWorks({ data }) {
           <Card key={i} onClick={() => { setStep(i); setPlay(false) }} selected={i === step} accent={data.color} className="pad-sm" style={{ opacity: i === step ? 1 : 0.7 }}>
             <div className="row" style={{ alignItems: 'flex-start' }}>
               <div style={{ width: 30, height: 30, borderRadius: 15, display: 'grid', placeItems: 'center', fontWeight: 800, flex: 'none', background: i === step ? data.color : 'rgba(120,120,140,.18)', color: i === step ? '#fff' : 'inherit', transition: 'all .4s var(--spring)', transform: i === step ? 'scale(1.15)' : 'none' }}>{i + 1}</div>
-              <div><b>{s.title}</b><AnimatePresence initial={false}>{i === step && <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="muted small" style={{ overflow: 'hidden' }}>{s.text}</motion.p>}</AnimatePresence></div>
+              <div><div className="row"><Icon className="how-step-icon" name={HOW_STEP_ICONS[data.id][i % HOW_STEP_ICONS[data.id].length]} size={17} style={{ color: data.color }} /><b>{s.title}</b></div><AnimatePresence initial={false}>{i === step && <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="muted small" style={{ overflow: 'hidden' }}>{s.text}</motion.p>}</AnimatePresence></div>
             </div>
           </Card>
         ))}
@@ -216,21 +222,6 @@ export function CompareTable({ types, compare, selected, onPick }) {
           <tr><td><b>Best for</b></td>{types.map((t) => <td key={t.id} className="small muted">{t.bestFor}</td>)}</tr>
         </tbody>
       </table>
-    </Card>
-  )
-}
-/* ───────────── Market timeline ───────────── */
-export function Timeline() {
-  const { data } = useApi('/market')
-  const [sel, setSel] = useState(null)
-  if (!data) return <div className="skeleton" style={{ height: 340 }} />
-  const colors = { crash: 'rgba(255,69,58,.14)', recovery: 'rgba(48,209,88,.14)', hype: 'rgba(255,159,10,.16)', bubble: 'rgba(255,69,58,.18)', dip: 'rgba(100,100,120,.12)' }
-  const ev = data.events.find((e) => e.id === sel)
-  return (
-    <Card className="pad col">
-      <LineChart series={[{ name: 'Simulated market index', color: '#a77a12', values: data.benchmark, fill: true }]} labels={data.labels} height={280} format={(v) => Math.round(v)} shaded={data.events.map((e) => ({ from: e.from, to: e.to, color: colors[e.id], label: '' }))} animateKey="tl" />
-      <div className="row wrap">{data.events.map((e) => <Chip key={e.id} className={`pick ${sel === e.id ? 'on' : ''}`} onClick={() => setSel(e.id === sel ? null : e.id)}><Icon name={e.emoji} size={14} /> {e.title}</Chip>)}</div>
-      <AnimatePresence mode="wait">{ev ? <motion.div key={ev.id} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}><Card className="pad-sm flat"><b><Icon name={ev.emoji} size={15} /> {ev.title}</b> <span className="chip">{ev.fromLabel} → {ev.toLabel}</span><p className="muted small">{ev.text}</p></Card></motion.div> : <p className="muted small">Tap an event to learn what happened. These same events power the budget back-tests, behaviour tests and regret warnings.</p>}</AnimatePresence>
     </Card>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AppProvider, useApp } from './state/AppContext.jsx'
-import { Navbar, JourneyBar, Tour, Dock } from './components/Shell.jsx'
+import { Navbar, Tour, Dock } from './components/Shell.jsx'
 import { Toasts } from './components/ui.jsx'
 import LaunchReveal from './components/LaunchReveal.jsx'
 import Home from './pages/Home.jsx'
@@ -15,7 +15,6 @@ function Pages() {
   return (
     <AnimatePresence mode="wait">
       <motion.main key={loc.pathname} className="page" initial={{ opacity: 0, y: 24, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -12 }} transition={{ type: 'spring', stiffness: 220, damping: 26 }} onAnimationStart={() => window.scrollTo({ top: 0 })}>
-        <JourneyBar />
         <Routes location={loc}>
           <Route path="/" element={<Home />} />
           <Route path="/budget" element={<Budget />} />

@@ -13,7 +13,7 @@ import { bad, num, oneOf, wrap, HttpError, rateLimit } from '../middleware/index
 import { marketDataStatus } from '../services/dataSource.js'
 import { mlHealth, mlRequest, mlGet } from '../services/mlClient.js'
 import { getIndianQuote, getIndianSymbols, searchIndianStocks } from '../services/indianMarket.js'
-import { chatWithGemini } from '../services/gemini.js'
+import { chatWithGroq } from '../services/groq.js'
 
 const r = Router()
 const TYPE_ALIAS = { stocks: 'stock', stock: 'stock', mf: 'mf', mutual: 'mf', index: 'index', etf: 'etf' }
@@ -44,7 +44,7 @@ r.get('/market/stocks', async (req, res) => res.json(await getIndianSymbols()))
 r.get('/market/search', async (req, res) => res.json(await searchIndianStocks(req.query.q)))
 r.post('/ai/chat', rateLimit({ max: 30 }), wrap(async (req, res) => {
   const body = req.body || {}
-  res.json(await chatWithGemini({ message: body.message, history: body.history, stock: body.stock }))
+  res.json(await chatWithGroq({ message: body.message, history: body.history, stock: body.stock }))
 }))
 r.get('/ml/market/assets', async (req, res) => res.json(await mlGet('/ml/market/assets')))
 r.get('/ml/market/assets/:symbol/history', async (req, res) => res.json(await mlGet(`/ml/market/assets/${encodeURIComponent(req.params.symbol)}/history`)))

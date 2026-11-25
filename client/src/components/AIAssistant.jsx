@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../lib/api.js'
+import { api, stockQuoteSummary } from '../lib/api.js'
 import { useApp } from '../state/AppContext.jsx'
 import { Button, Sheet } from './ui.jsx'
 import { Icon } from './Icon.jsx'
@@ -27,8 +27,8 @@ export default function AIAssistant() {
     if (!open) return
     const stockIntro = aiStock
       ? aiStock.explanation
-        ? `Here is a beginner-friendly snapshot of ${aiStock.companyName || aiStock.symbol}:\n\n${aiStock.explanation}\n\nAsk me anything else about this quote.`
-        : `I’m ready to explain ${aiStock.companyName || aiStock.symbol} using the latest available quote. What would you like to know?`
+        ? `${aiStock.explanationIsFallback ? 'Groq is temporarily unavailable, so here is a quote-only snapshot:' : `Here is a beginner-friendly snapshot of ${aiStock.companyName || aiStock.symbol}:`}\n\n${aiStock.explanation}\n\nAsk me anything else about this quote.`
+        : `Groq is temporarily unavailable, so here is a quote-only snapshot:\n\n${stockQuoteSummary(aiStock)}\n\nAsk me anything else about this quote.`
       : ''
     setMessages(stockIntro ? [{ role: 'assistant', text: stockIntro }] : [])
     setError('')
@@ -72,6 +72,7 @@ export default function AIAssistant() {
       }])
     } catch (requestError) {
       setError(requestError.message)
+      setDraft(message)
     } finally {
       setBusy(false)
     }
@@ -87,7 +88,7 @@ export default function AIAssistant() {
       <div className="ai-messages" role="log" aria-live="polite" ref={log}>
         {messages.map((item, index) => <div key={`${item.role}-${index}`} className={`ai-message ${item.role === 'user' ? 'user' : ''}`}>
           <div className="tiny muted">{item.role === 'user' ? 'You' : 'FinSense AI'}</div>
-          <p>{item.text}</p>
+          <p className="ai-answer">{item.text}</p>
           {item.suggestedPage && PAGE_LABELS[item.suggestedPage.path] && <Button className="sm" size="sm" onClick={() => goToPage(item.suggestedPage.path)}>Open {PAGE_LABELS[item.suggestedPage.path]} page</Button>}
         </div>)}
         {busy && <div className="ai-message"><div className="tiny muted">FinSense AI</div><p>Thinking…</p></div>}
@@ -98,7 +99,7 @@ export default function AIAssistant() {
         <textarea id="ai-message" className="input" rows="2" maxLength="1500" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={aiStock ? `Ask about ${aiStock.symbol}…` : 'Ask about the project or investing basics…'} />
         <Button type="submit" variant="primary" disabled={busy || !draft.trim()} aria-label="Send message"><Icon name="message" size={17} /> Send</Button>
       </form>
-      <p className="tiny muted ai-disclaimer">Messages are processed by Gemini; do not share sensitive personal information. Educational information only, not financial advice. Quotes may be delayed or cached.</p>
+      <p className="tiny muted ai-disclaimer">Messages are processed by Groq; do not share sensitive personal information. Educational information only, not financial advice. Quotes may be delayed or cached.</p>
     </Sheet>
   )
 }

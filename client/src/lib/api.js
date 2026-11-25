@@ -42,6 +42,15 @@ export const inr = (n, compact = false) => {
   if (compact && a >= 100_000) return `${sign}₹${(a / 100_000).toFixed(2)} L`
   return `${sign}₹${a.toLocaleString('en-IN')}`
 }
+export function stockQuoteSummary({ symbol, companyName, quote = {} }) {
+  const formatPrice = (value) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const name = companyName || symbol || 'This stock'
+  const latestPrice = Number.isFinite(quote.lastPrice) ? formatPrice(quote.lastPrice) : 'unavailable'
+  const movement = Number.isFinite(quote.change)
+    ? `The quote is ${quote.change > 0 ? 'up' : quote.change < 0 ? 'down' : 'unchanged'} ${formatPrice(Math.abs(quote.change))}${Number.isFinite(quote.changePercent) ? ` (${Math.abs(quote.changePercent).toFixed(2)}%)` : ''} compared with the previous close.`
+    : 'The day-over-day change is unavailable.'
+  return `Quote-only snapshot for ${name}${symbol ? ` (${symbol})` : ''}: the latest price is ${latestPrice}. ${movement} This describes recent price movement only; it does not explain the cause or predict future returns, and is not a buy/sell recommendation.`
+}
 export const pct = (n, d = 1) => `${n > 0 ? '+' : ''}${Number(n).toFixed(d)}%`
 export const TYPE_META = {
   stock: { name: 'Individual Stocks', short: 'Stocks', emoji: 'building', color: '#a77a12' },

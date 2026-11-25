@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { api, inr, TYPE_META } from '../lib/api.js'
 import { useApp } from '../state/AppContext.jsx'
-import { Card, Button, Chip, SectionHead, Segmented, InfoTip, Term, Bar, ErrorBox, Confetti } from '../components/ui.jsx'
+import { Card, Button, Chip, SectionHead, InfoTip, Term, Bar, ErrorBox, Confetti } from '../components/ui.jsx'
 import { LineChart, Radar, Ring, Count, scoreColor } from '../components/charts.jsx'
 import { Icon, TYPE_ICON } from '../components/Icon.jsx'
 
@@ -166,7 +166,7 @@ function Results({ p, onRetake }) {
 export default function Behaviour() {
   const { assetType, profile, setProfile, markDone, toast } = useApp()
   const [type, setType] = useState(assetType || 'stock')
-  const [mode, setMode] = useState('pressure')
+  const mode = 'pressure'
   const [phase, setPhase] = useState(profile ? 'result' : 'intro')
   const [scenarios, setScn] = useState([])
   const [i, setI] = useState(0)
@@ -194,8 +194,6 @@ export default function Behaviour() {
             <Card className="pad-lg col">
               <b style={{ fontSize: 18 }}>1 · Which type of investment should the test use?</b>
               <div className="grid g4">{Object.entries(TYPE_META).map(([k, m]) => <Card key={k} lift selected={type === k} accent={m.color} onClick={() => setType(k)} className="pad-sm row"><Icon name={TYPE_ICON[k]} size={24} /><b>{m.name}</b></Card>)}</div>
-              <b style={{ fontSize: 18, marginTop: 8 }}>2 · Pressure level</b>
-              <div className="row wrap"><Segmented value={mode} onChange={setMode} options={[{ value: 'pressure', label: 'Real pressure' }, { value: 'calm', label: 'Calm practice' }]} /><InfoTip>Pressure = countdown timer, buzzing alerts, crowd messages and a racing heartbeat. Calm = the same questions without any rush. Try both and compare!</InfoTip></div>
               <div className="grid g3">{[['clock', 'Timed', 'Each scenario has 9–14 seconds. Freezing is recorded too.'], ['bell', 'Noisy', 'Fake alerts, WhatsApp tips and panic messages.'], ['index', 'Revealing', '8 biases scored, an archetype and a coaching plan.']].map(([e, t, d]) => <Card key={t} className="pad-sm flat"><div style={{ color: 'var(--gold)' }}><Icon name={e} size={23} /></div><b>{t}</b><p className="tiny muted">{d}</p></Card>)}</div>
               <Button variant="primary" size="lg" onClick={start}>Begin the test →</Button>
               {profile && <Button variant="ghost" onClick={() => setPhase('result')}>See my previous result</Button>}

@@ -8,7 +8,6 @@ import { Card, Button, Chip, Reveal, SectionHead, Segmented, InfoTip, Term, Shee
 import { LineChart, Legend, Donut, Ring, Count, scoreColor, riskColor, Spark } from '../components/charts.jsx'
 import { Icon, TYPE_ICON } from '../components/Icon.jsx'
 
-const AMOUNTS = [5000, 10000, 25000, 50000, 100000, 500000]
 const RISKS = [{ v: 'low', e: 'shield', t: 'Cautious', d: 'Smaller swings. Max 30% in one holding. No speculative picks.' }, { v: 'medium', e: 'scale', t: 'Balanced', d: 'A mix of steady and growth assets. Max 35% in one holding.' }, { v: 'high', e: 'chart', t: 'Adventurous', d: 'Accepts bigger swings for growth. Up to 40% per holding and a small speculative slice.' }]
 
 function Analysing({ steps }) {
@@ -137,57 +136,12 @@ function TimeMachine({ amount, labels }) {
   )
 }
 
-function RealPortfolioPanel({ amount, risk }) {
-  const [strategy, setStrategy] = useState('minimum_variance')
-  const [horizon, setHorizon] = useState(1)
-  const [result, setResult] = useState(null)
-  const [comparison, setComparison] = useState(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState(null)
-  const run = async () => {
-    setBusy(true); setError(null)
-    try {
-      const [optimized, compared] = await Promise.all([
-        api('/ml/portfolio/optimize', { method: 'POST', body: { budget: amount, risk, strategy } }),
-        api('/ml/portfolio/compare', { method: 'POST', body: { budget: amount, risk, strategy, horizonYears: horizon } }),
-      ])
-      if (optimized.status !== 'ok') throw new Error(optimized.message || 'Real-data optimization is unavailable')
-      setResult(optimized); setComparison(compared)
-    } catch (e) { setError(e) } finally { setBusy(false) }
-  }
-  const bt = comparison?.strategies?.find((item) => item.strategy === strategy && item.status === 'ok')
-  const curve = bt?.equityCurve || []
-  return (
-    <section className="sec">
-      <SectionHead eyebrow="Real historical data" title="Portfolio optimizer" sub="This panel uses adjusted prices from the prepared market dataset. It is separate from the legacy simulated demo allocation above." />
-      <Card className="pad col">
-        <div className="row between wrap"><div className="row wrap"><Chip tone="green">● Real data</Chip><span className="small muted">Source: {result?.dataSource || 'Indian market historical OHLCV'}</span></div><span className="tiny muted">Latest observation: {result?.latestObservationDate ? new Date(result.latestObservationDate).toLocaleDateString() : 'loaded on run'}</span></div>
-        <div className="grid g3">
-          <div className="col"><label className="small bold">Strategy</label><select className="input" value={strategy} onChange={(e) => setStrategy(e.target.value)}><option value="minimum_variance">Minimum variance</option><option value="equal_weight">Equal weight</option><option value="risk_adjusted">Risk-adjusted</option><option value="historical_rule_based">Historical rule benchmark</option></select></div>
-          <div className="col"><label className="small bold">Real-data backtest horizon</label><select className="input" value={horizon} onChange={(e) => setHorizon(+e.target.value)}><option value="1">1-year real history</option><option value="2">2-year real history</option><option value="3">3-year real history</option></select></div>
-          <div className="col"><label className="small bold">Budget / risk</label><div className="num">{inr(amount, true)} · {risk}</div><Button variant="primary" onClick={run} disabled={busy}>{busy ? 'Calculating…' : 'Run real-data analysis'}</Button></div>
-        </div>
-        {error && <ErrorBox error={error} onRetry={run} />}
-        {result && <>
-          <div className="row wrap">{result.assets.map((a) => <Chip key={a.symbol}>{a.symbol}: {Math.round(a.weight * 100)}% · {inr(a.allocationInr, true)}</Chip>)}</div>
-          <div className="grid g4"><Card className="pad-sm flat center"><div className="tiny muted">Invested</div><b className="num">{inr(result.investedInr)}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">Unallocated</div><b className="num">{inr(result.unallocatedInr)}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">Annual volatility</div><b className="num">{pct(result.historicalMetrics.annualizedVolatility, 1)}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">Observation date</div><b className="small">{new Date(result.latestObservationDate).toLocaleDateString()}</b></Card></div>
-        </>}
-        {bt?.metrics && <>
-          <div className="row between wrap"><b>{horizon}-year historical backtest</b><span className="tiny muted">Monthly rebalance · risk-free rate {pct(bt.metrics.riskFreeRate, 1)}</span></div>
-          <div className="grid g4"><Card className="pad-sm flat center"><div className="tiny muted">Final value</div><b className="num">{inr(bt.metrics.finalPortfolioValue)}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">CAGR</div><b className="num">{pct(bt.metrics.cagr, 1)}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">Sharpe</div><b className="num">{bt.metrics.sharpe?.toFixed(2) ?? '—'}</b></Card><Card className="pad-sm flat center"><div className="tiny muted">Max drawdown</div><b className="num">{pct(bt.metrics.maximumDrawdown, 1)}</b></Card></div>
-          <LineChart series={[{ name: 'Real portfolio value', color: '#30d158', values: curve.map((p) => p.value), fill: true }]} labels={curve.map((p) => new Date(p.date).toLocaleDateString())} height={220} baseline={amount} animateKey={`${strategy}-${horizon}`} />
-          {comparison?.strategies?.some((item) => item.status === 'ok') && <div className="row wrap">{comparison.strategies.filter((item) => item.status === 'ok').map((item) => <Chip key={item.strategy}>{item.strategy.replaceAll('_', ' ')}: {pct(item.metrics.totalReturn, 1)}</Chip>)}</div>}
-          <p className="tiny muted">Historical performance is not a prediction and does not guarantee future returns. ML return probabilities remain supplementary signals and were not treated as expected returns.</p>
-        </>}
-      </Card>
-    </section>
-  )
-}
-
 export default function Budget() {
   const { budget, setBudget, assetType, profile, markDone, toast } = useApp()
   const nav = useNavigate()
-  const [amount, setAmount] = useState(budget.amount || 50000)
+  const [amountInput, setAmountInput] = useState(String(budget.amount || 50000))
+  const amount = Number(amountInput)
+  const amountValid = Number.isSafeInteger(amount) && amount >= 5000 && amount <= 1000000
   const [types, setTypes] = useState(budget.types?.length ? budget.types : assetType ? [assetType] : [])
   const [risk, setRisk] = useState(profile?.suggestedRisk || budget.risk || 'medium')
   const [res, setRes] = useState(null)
@@ -215,10 +169,14 @@ export default function Budget() {
       <Card className="pad-lg col">
         <div className="row between wrap"><b style={{ fontSize: 18 }}>1 · How much do you want to invest?</b><InfoTip>This is a one-time (lump sum) amount. Prices of shares are real-looking but simulated.</InfoTip></div>
         <div className="row wrap" style={{ alignItems: 'flex-end' }}>
-          <div className="num" style={{ fontSize: 44, fontWeight: 800 }}><Count value={amount} format={(v) => inr(v)} /></div>
-          <div className="row wrap" style={{ marginLeft: 'auto' }}>{AMOUNTS.map((a) => <Chip key={a} className={`pick ${amount === a ? 'on' : ''}`} onClick={() => setAmount(a)}>{inr(a, true)}</Chip>)}</div>
+          <div className="num" style={{ fontSize: 44, fontWeight: 800 }}>{amountValid ? <Count value={amount} format={(v) => inr(v)} /> : '—'}</div>
+          <label className="col" style={{ marginLeft: 'auto', width: 'min(320px, 100%)' }}>
+            <span className="tiny muted">Enter your amount in rupees</span>
+            <input className="input" type="number" inputMode="numeric" min="5000" max="1000000" step="1" placeholder="e.g. 20,000" aria-label="Investment amount" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} />
+          </label>
         </div>
-        <input type="range" min="5000" max="1000000" step="5000" value={amount} style={{ '--p': `${((amount - 5000) / 995000) * 100}%` }} onChange={(e) => setAmount(+e.target.value)} aria-label="Investment amount" />
+        {!amountValid && <p className="tiny down" role="alert">Enter a whole amount between ₹5,000 and ₹10,00,000.</p>}
+        <input type="range" min="5000" max="1000000" step="1" value={Math.min(Math.max(amount || 5000, 5000), 1000000)} style={{ '--p': `${(Math.min(Math.max(amount || 5000, 5000), 1000000) - 5000) / 995000 * 100}%` }} onChange={(e) => setAmountInput(e.target.value)} aria-label="Investment amount slider" />
         <div className="divider" />
         <div className="row between wrap"><b style={{ fontSize: 18 }}>2 · What kinds of investments?</b><span className="small muted">{types.length ? `${types.length} selected` : 'None selected = a mix of all four'}</span></div>
         <div className="grid g4">{Object.entries(TYPE_META).map(([k, m]) => <Card key={k} lift onClick={() => toggle(k)} selected={types.includes(k)} accent={m.color} className="pad-sm row" role="checkbox" aria-checked={types.includes(k)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggle(k)}><Icon name={TYPE_ICON[k]} size={24} /><div><b>{m.name}</b><div className="tiny muted">{types.includes(k) ? 'Included' : 'Tap to include'}</div></div></Card>)}</div>
@@ -226,10 +184,8 @@ export default function Budget() {
         <b style={{ fontSize: 18 }}>3 · How do you handle ups and downs?</b>
         <div className="grid g3">{RISKS.map((r) => <Card key={r.v} lift onClick={() => setRisk(r.v)} selected={risk === r.v} className="pad-sm"><div className="row"><Icon name={r.e} size={24} /><b>{r.t}</b>{profile?.suggestedRisk === r.v && <Chip tone="purple">Suggested for you</Chip>}</div><p className="tiny muted" style={{ marginTop: 4 }}>{r.d}</p></Card>)}</div>
         {!profile && <p className="tiny muted"><Icon name="bulb" size={14} /> Tip: take the <button className="chip pick" onClick={() => nav('/behaviour')}>behaviour test</button> and we will suggest the right risk style for you.</p>}
-        <Button variant="primary" size="lg" onClick={build} disabled={busy}>{busy ? 'Working…' : <><Icon name="spark" size={16} /> Build my portfolio</>}</Button>
+        <Button variant="primary" size="lg" onClick={build} disabled={busy || !amountValid}>{busy ? 'Working…' : <><Icon name="spark" size={16} /> Build my portfolio</>}</Button>
       </Card>
-
-      <RealPortfolioPanel amount={amount} risk={risk} />
 
       <ErrorBox error={err} onRetry={build} />
       {busy && <Analysing steps={STEPS} />}

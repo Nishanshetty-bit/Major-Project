@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, inr } from '../lib/api.js'
+import { api, inr, stockQuoteSummary } from '../lib/api.js'
 import { useApi } from '../hooks/index.js'
 import { useApp } from '../state/AppContext.jsx'
 import { Button, Card, Chip, Loading, Modal } from '../components/ui.jsx'
@@ -71,7 +71,12 @@ export default function StockSearch({ open, onClose }) {
       },
     })
       .then((result) => { if (active) setStockExplanation(result.answer) })
-      .catch((error) => { if (active) setStockAIError(error.message) })
+      .catch((error) => {
+        if (active) {
+          setStockExplanation(stockQuoteSummary({ symbol: selected.symbol, companyName: selected.companyName, quote }))
+          setStockAIError(error.message)
+        }
+      })
       .finally(() => { if (active) setStockAIBusy(false) })
     return () => { active = false }
   }, [selected?.symbol, selected?.companyName, quote])
@@ -150,15 +155,16 @@ export default function StockSearch({ open, onClose }) {
         {quoteBusy && <Loading rows={1} h={70} />}
         {quoteError && <p className="small down" role="alert">Quote request failed: {quoteError}</p>}
         {quote?.status === 'unavailable' && <Card className="pad-sm flat small" role="status"><b>Quote unavailable.</b> {quote.message}</Card>}
-        {selected && quote?.symbol === selected.symbol && quote?.status === 'ok' && <Card className="pad-sm flat col stock-ai-summary">
-          <div className="row between wrap"><b>AI beginner explanation</b>{stockAIBusy && <span className="tiny muted">Preparing explanation…</span>}</div>
-          {stockExplanation && <p className="small muted">{stockExplanation}</p>}
-          {stockAIError && <p className="small down" role="alert">AI explanation unavailable: {stockAIError}</p>}
+        {selected && quote?.symbol === selected.symbol && quote?.status === 'ok' && <Card className="pad-sm flat col stock-ai-summary" aria-live="polite">
+          <div className="row between wrap"><b>{stockAIError ? 'Quote-based summary' : 'AI beginner explanation'}</b>{stockAIBusy && <span className="tiny muted">Preparing explanation…</span>}</div>
+          {stockExplanation && <p className="small muted ai-answer">{stockExplanation}</p>}
+          {!stockAIBusy && !stockExplanation && !stockAIError && <p className="small muted">No explanation was returned. You can still ask FinSense AI about this quote.</p>}
+          {stockAIError && <p className="small down" role="alert">Groq explanation unavailable: {stockAIError}</p>}
           <Button className="sm" size="sm" onClick={() => {
-            setAIStock({ symbol: selected.symbol, companyName: selected.companyName, quote, explanation: stockExplanation })
+            setAIStock({ symbol: selected.symbol, companyName: selected.companyName, quote, explanation: stockExplanation, explanationIsFallback: Boolean(stockAIError) })
             setSelected(null)
             setPanel('ai')
-          }}><Icon name="message" size={15} /> Chat about this stock</Button>
+          }} disabled={stockAIBusy}><Icon name="message" size={15} /> Chat about this stock</Button>
         </Card>}
         {quote?.status === 'ok' && <div className="col">
           <div className="row between wrap">

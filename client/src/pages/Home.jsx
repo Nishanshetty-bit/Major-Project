@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useApi } from '../hooks/index.js'
 import { useApp } from '../state/AppContext.jsx'
 import { Card, Button, Chip, Reveal, ScrollSection, SectionHead, Segmented, Meter, InfoTip, Term, Loading, ErrorBox } from '../components/ui.jsx'
-import { HowItWorks, InvestSteps, TryIt, CompareTable, Timeline } from '../components/explain.jsx'
+import { HowItWorks, InvestSteps, TryIt, CompareTable } from '../components/explain.jsx'
 import { LineChart } from '../components/charts.jsx'
 import { api } from '../lib/api.js'
 import { Icon, TYPE_ICON } from '../components/Icon.jsx'
@@ -30,7 +30,6 @@ function Hero({ onStart, onTutorial, tutorialActive }) {
         <Button size="lg" onClick={() => nav('/budget')}><Icon name="wallet" size={18} /> Build my plan</Button>
         <Button size="lg" variant={tutorialActive ? 'primary' : ''} onClick={onTutorial} aria-pressed={tutorialActive}><Icon name="question" size={18} /> Tutorial</Button>
       </motion.div>
-      <div className="row center wrap" style={{ marginTop: 34, gap: 26 }}>{[['4', 'ways to invest'], ['19', 'simulated assets'], ['10', 'pressure tests'], ['1', 'regret engine']].map(([n, l], i) => <Reveal key={l} delay={0.5 + i * 0.1}><div><div className="xl grad-text">{n}</div><div className="small muted">{l}</div></div></Reveal>)}</div>
     </section>
   )
 }
@@ -112,6 +111,7 @@ function Explainer({ t, onTutorialStep }) {
 }
 
 export default function Home() {
+  const nav = useNavigate()
   const { data, error, reload } = useApi('/education')
   const { assetType, setAssetType, markDone, toast } = useApp()
   const [tutorialStep, setTutorialStep] = useState(-1)
@@ -181,21 +181,11 @@ export default function Home() {
       {data && <ScrollSection data-tutorial="compare-section"><SectionHead eyebrow="Side by side" title="Compare all four" sub={<>Bars show <Term k="volatility">risk</Term>, cost, effort, <Term k="diversification">diversification</Term> and <Term k="liquidity">sell speed</Term>. Click a column heading to open that lesson.</>} />
         <CompareTable types={data.types} compare={data.compare} selected={assetType} onPick={pick} /></ScrollSection>}
 
-      <ScrollSection><SectionHead eyebrow="Learn from history" title="The simulated market's story" sub="Crashes and bubbles are normal. This 5-year fake market contains both – the rest of the app uses them to test your plan and your nerves." /><Timeline /></ScrollSection>
-
-      <ScrollSection><SectionHead center eyebrow="Your journey" title="Ready for the next step?" />
-        <div className="grid g3">
-          {[[ 'wallet', 'Budget plan', 'Turn your amount into a diversified portfolio and see 1, 2 and 3-year back-tests.', '/budget'], ['brain', 'Behaviour test', '10 pressure scenarios reveal how you really act under stress.', '/behaviour'], ['shield', 'Pre-decision shield', 'Get a regret warning before buying or selling.', '/pre-decision']].map(([e, t, d, p], i) => <Link3 key={p} {...{ e, t, d, p, i }} />)}
-        </div></ScrollSection>
       {tutorialStep >= 0 && <aside className="tutorial-guide" role="status" aria-live="polite">
         <div className="row between"><b>Tutorial · {tutorialStep === 3 ? 'Complete' : `Step ${tutorialStep + 1} of 3`}</b><button className="tutorial-close" onClick={() => setTutorialStep(-1)} aria-label="End tutorial">×</button></div>
         <p>{tutorialIdle && tutorialStep < 3 ? (tutorialStep === 2 ? 'Whenever you are ready, scroll down to continue.' : 'Whenever you are ready, follow the highlighted area.') : tutorialMessages[tutorialStep]}</p>
-        {tutorialStep === 3 && <Button size="sm" className="sm" onClick={() => setTutorialStep(-1)}>Finish tutorial</Button>}
+        {tutorialStep === 3 && <Button size="sm" className="sm" onClick={() => { setTutorialStep(-1); nav('/budget') }}>Finish tutorial and open Budget →</Button>}
       </aside>}
     </>
   )
-}
-function Link3({ e, t, d, p, i }) {
-  const nav = useNavigate()
-  return <Reveal delay={i * 0.1}><Card lift onClick={() => nav(p)} className="pad col"><div style={{ color: 'var(--gold)' }}><Icon name={e} size={32} /></div><h3>{t}</h3><p className="muted small">{d}</p><b className="small" style={{ color: 'var(--blue)' }}>Open →</b></Card></Reveal>
 }

@@ -28,9 +28,9 @@ export function LineChart({ series, labels, band, height = 260, format = (v) => 
     <div ref={ref} style={{ position: 'relative', width: '100%' }}>
       <svg width={W} height={H} style={{ display: 'block', touchAction: 'pan-y' }} onMouseMove={move} onTouchMove={move} onMouseLeave={() => setHover(null)} role="img" aria-label="Line chart">
         <defs>{series.map((s, i) => <linearGradient key={i} id={`lg${animateKey}${i}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={s.color} stopOpacity=".25" /><stop offset="1" stopColor={s.color} stopOpacity="0" /></linearGradient>)}</defs>
-        {ticks.map((t) => <g key={t}><line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="rgba(60,60,90,.1)" /><text x={pad.l - 8} y={y(t) + 4} textAnchor="end" fontSize="10.5" fill="rgba(17,24,39,.5)">{format(t)}</text></g>)}
-        {shaded.map((s, i) => <g key={i}><rect x={x(s.from)} width={Math.max(2, x(s.to) - x(s.from))} y={pad.t} height={H - pad.t - pad.b} fill={s.color || 'rgba(255,69,58,.1)'} rx="6" /><text x={(x(s.from) + x(s.to)) / 2} y={pad.t + 12} textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(17,24,39,.5)">{s.label}</text></g>)}
-        {baseline && <line x1={pad.l} x2={W - pad.r} y1={y(baseline)} y2={y(baseline)} stroke="rgba(17,24,39,.35)" strokeDasharray="5 5" />}
+        {ticks.map((t) => <g key={t}><line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="var(--chart-grid)" /><text x={pad.l - 8} y={y(t) + 4} textAnchor="end" fontSize="10.5" fill="var(--chart-label)">{format(t)}</text></g>)}
+        {shaded.map((s, i) => <g key={i}><rect x={x(s.from)} width={Math.max(2, x(s.to) - x(s.from))} y={pad.t} height={H - pad.t - pad.b} fill={s.color || 'rgba(255,69,58,.1)'} rx="6" /><text x={(x(s.from) + x(s.to)) / 2} y={pad.t + 12} textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--chart-label)">{s.label}</text></g>)}
+        {baseline && <line x1={pad.l} x2={W - pad.r} y1={y(baseline)} y2={y(baseline)} stroke="var(--chart-baseline)" strokeDasharray="5 5" />}
         {band && <path key={'b' + animateKey} d={`${path(band.high)} L${x(n - 1)} ${y(band.low[n - 1])} ${band.low.map((v, i) => `L${x(n - 1 - i).toFixed(1)} ${y(band.low[n - 1 - i]).toFixed(1)}`).join(' ')} Z`} fill={band.color || 'rgba(10,132,255,.14)'} style={{ animation: 'pop .8s var(--ease) both' }} />}
         {series.map((s, i) => (
           <g key={animateKey + i}>
@@ -39,15 +39,15 @@ export function LineChart({ series, labels, band, height = 260, format = (v) => 
           </g>
         ))}
         {markers.map((mk, i) => <g key={i}><line x1={x(mk.x)} x2={x(mk.x)} y1={pad.t} y2={H - pad.b} stroke={mk.color || '#ff9f0a'} strokeDasharray="4 4" /><text x={x(mk.x)} y={pad.t + 10} fontSize="10" fontWeight="700" textAnchor="middle" fill={mk.color || '#ff9f0a'}>{mk.label}</text></g>)}
-        {xt.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10.5" fill="rgba(17,24,39,.5)">{labels?.[i] ?? i}</text>)}
+        {xt.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10.5" fill="var(--chart-label)">{labels?.[i] ?? i}</text>)}
         {hover !== null && <g>
-          <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="rgba(17,24,39,.25)" />
+          <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="var(--chart-hover)" />
           {series.map((s, i) => s.values[hover] !== undefined && <circle key={i} cx={x(hover)} cy={y(s.values[hover])} r="5" fill="#fff" stroke={s.color} strokeWidth="3" />)}
         </g>}
         {dot && hover === null && series.map((s, i) => !s.dashed && <circle key={i} cx={x(s.values.length - 1)} cy={y(s.values[s.values.length - 1])} r="5" fill={s.color} style={{ animation: 'pop .5s 1.6s both' }} />)}
       </svg>
       {hover !== null && (
-        <div style={{ position: 'absolute', top: 4, left: Math.min(Math.max(x(hover) - 70, 0), W - 160), minWidth: 130, pointerEvents: 'none', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(14px)', border: '1px solid #fff', borderRadius: 14, padding: '8px 12px', boxShadow: '0 10px 28px rgba(30,30,90,.2)', fontSize: 12 }}>
+        <div className="chart-tooltip" style={{ top: 4, left: Math.min(Math.max(x(hover) - 70, 0), W - 160), minWidth: 130 }}>
           <b>{labels?.[hover] ?? hover}</b>
           {series.map((s, i) => <div key={i} className="row" style={{ gap: 6 }}><i style={{ width: 8, height: 8, borderRadius: 4, background: s.color }} /><span className="muted">{s.name}</span><b className="num" style={{ marginLeft: 'auto' }}>{format(s.values[hover])}</b></div>)}
         </div>

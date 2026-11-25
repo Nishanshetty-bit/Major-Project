@@ -45,23 +45,6 @@ export function Navbar() {
   )
 }
 
-export function JourneyBar() {
-  const loc = useLocation(), nav = useNavigate(), { done } = useApp()
-  const steps = [{ k: 'learned', l: 'Learn', e: 'book', p: '/' }, { k: 'budgeted', l: 'Plan', e: 'wallet', p: '/budget' }, { k: 'profiled', l: 'Know yourself', e: 'brain', p: '/behaviour' }, { k: 'protected', l: 'Stay safe', e: 'shield', p: '/pre-decision' }]
-  return (
-    <div className="journey" aria-label="Your journey">
-      {steps.map((s, i) => (
-        <div key={s.k} style={{ display: 'contents' }}>
-          {i > 0 && <div className={`j-line ${done[steps[i - 1].k] ? 'done' : ''}`}><i /></div>}
-          <button className={`j-step ${done[s.k] ? 'done' : ''} ${loc.pathname === s.p ? 'here' : ''}`} onClick={() => nav(s.p)} title={`Go to ${s.l}`}>
-            <div className="j-dot">{done[s.k] ? <Icon name="check" size={16} /> : <Icon name={s.e} size={16} />}</div><span>{s.l}</span>
-          </button>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 const SLIDES = [
   { e: 'book', t: 'Learn how money grows', d: 'Stocks, mutual funds, index funds and ETFs explained with simple animations. No jargon, no pressure.' },
   { e: 'wallet', t: 'Build a plan for your budget', d: 'Tell us how much you have. We split it across smart picks and show what happened in the past – including what happens if you choose wrong.' },
@@ -70,9 +53,11 @@ const SLIDES = [
 ]
 export function Tour() {
   const { panel, setPanel, seeTour, tourSeen } = useApp()
+  const nav = useNavigate()
   const [i, setI] = useState(0)
   const open = panel === 'tour' || !tourSeen
   const close = () => { seeTour(); setPanel(null); setI(0) }
+  const finish = () => { close(); nav('/budget') }
   const s = SLIDES[i]
   return (
     <Modal open={open} onClose={close}>
@@ -85,7 +70,7 @@ export function Tour() {
         <div className="row" style={{ marginTop: 10 }}>
           <Button variant="ghost" onClick={close}>Skip</Button>
           {i > 0 && <Button onClick={() => setI(i - 1)}>Back</Button>}
-          <Button variant="primary" onClick={() => (i < SLIDES.length - 1 ? setI(i + 1) : close())}>{i < SLIDES.length - 1 ? 'Next' : "Let's go"}</Button>
+          <Button variant="primary" onClick={() => (i < SLIDES.length - 1 ? setI(i + 1) : finish())}>{i < SLIDES.length - 1 ? 'Next' : "Let's go"}</Button>
         </div>
         <p className="tiny faint" style={{ marginTop: 6 }}>All market data here is simulated for learning. Nothing is financial advice.</p>
       </div>
@@ -101,7 +86,6 @@ export const HELP = {
     ['How to invest tab', 'A phone mock-up shows every screen you will see in a real investing app. Use Next/Back or tap the dots.'],
     ['Try it tab', 'Move the slider to see what your money buys. Press "Crash a company" to feel why diversification matters.'],
     ['Compare table', 'Click a column heading to open that investment type lesson.'],
-    ['Market timeline', 'Hover the chart. Coloured bands are the simulated crash, recovery and bubble that the other modules use.'],
     ['Dotted words', 'Hover or tap any dotted-underline word to see its meaning. The Aa button opens the full glossary.'],
   ],
   '/budget': [
@@ -115,7 +99,7 @@ export const HELP = {
   ],
   '/behaviour': [
     ['Pick a type', 'The scenarios use assets of the type you choose, so the test feels relevant.'],
-    ['Pressure vs Calm mode', 'Pressure adds timers, alerts and crowd messages. Calm lets you think freely – compare both to see how stress changes you.'],
+    ['Pressure scenarios', 'Each question has a timer, alerts and crowd messages.'],
     ['Timer ring', 'When it runs out you "freeze" – which is also recorded.'],
     ['After each choice', 'We reveal what happened next and what the disciplined choice would have been.'],
     ['Results', 'Radar chart, your archetype, bias scores, a review of all 10 choices and coaching tips. Your profile feeds the Pre-Decision engine.'],

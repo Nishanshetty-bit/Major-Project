@@ -11,7 +11,7 @@ npm run dev             # API on :5000 + website on :5173  â†’ open http://
 Or in two terminals: `cd server && npm install && npm start`  and  `cd client && npm install && npm run dev`.
 If API port 5000 is already in use in PowerShell, run `$env:PORT='5001'; npm run dev`; the website proxy follows the API port and Vite will choose the next available web port.
 
-The AI assistant uses Gemini through the server. Copy `.env.example` settings into `server/.env` and set `GEMINI_API_KEY`; the key is never sent to the browser. The AI chat offers project page shortcuts, beginner-friendly explanations, and quote-context explanations for selected stocks. AI output is educational, not financial advice.
+The AI assistant uses Groq through the server. Copy `.env.example` settings into `server/.env` and set `GROQ_API_KEY`; the key is never sent to the browser. The default model is `openai/gpt-oss-20b` and can be changed with `GROQ_MODEL`. The AI chat offers project page shortcuts, beginner-friendly explanations, and quote-context explanations for selected stocks. AI output is educational, not financial advice.
 
 Tests: `npm test` (7 API tests) Â· with the server running: `cd client && npm test` (UI smoke test of all 4 pages).
 
